@@ -26,7 +26,7 @@ connection.connect((err) => {
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use('/img', express.static(path.join(__dirname, 'img')));
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // Routes
 app.get('/', (req, res) => {
@@ -43,7 +43,7 @@ app.get('/orthopedic-needs', (req, res) => {
         } else {
             // Update icon_url to provide full path
             results.forEach(result => {
-                result.icon_url = `${req.protocol}://${req.get('host')}/img/${path.basename(result.icon_url)}`;
+                result.icon_url = `${req.protocol}://${req.get('host')}/images/${path.basename(result.icon_url)}`;
             });
             res.json(results);
         }
