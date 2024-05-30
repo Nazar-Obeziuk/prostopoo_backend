@@ -33,9 +33,9 @@ app.get('/', (req, res) => {
     res.send('Welcome to PROSTOPOO API');
 });
 
-// Route to get orthotic needs data
-app.get('/orthotic-needs', (req, res) => {
-    const sqlQuery = 'SELECT * FROM orthotic_needs';
+// Route to get orthopedic needs data
+app.get('/orthopedic-needs', (req, res) => {
+    const sqlQuery = 'SELECT * FROM orthopedic_needs';
     connection.query(sqlQuery, (err, results) => {
         if (err) {
             console.error('Error executing query:', err.message);
@@ -51,10 +51,10 @@ app.get('/orthotic-needs', (req, res) => {
 });
 
 
-// Route to add a new orthotic need
-app.post('/orthotic-needs', (req, res) => {
+// Route to add a new orthopedic need
+app.post('/orthopedic-needs', (req, res) => {
     const { group_name_uk, group_name_en, icon_url } = req.body;
-    const sqlQuery = 'INSERT INTO orthotic_needs (group_name_uk, group_name_en, icon_url) VALUES (?, ?, ?)';
+    const sqlQuery = 'INSERT INTO orthopedic_needs (group_name_uk, group_name_en, icon_url) VALUES (?, ?, ?)';
     connection.query(sqlQuery, [group_name_uk, group_name_en, icon_url], (err, results) => {
         if (err) {
             console.error('Error executing query:', err.message);
@@ -65,10 +65,10 @@ app.post('/orthotic-needs', (req, res) => {
     });
 });
 
-// Route to delete an orthotic need by ID
-app.delete('/orthotic-needs/:id', (req, res) => {
+// Route to delete an orthopedic need by ID
+app.delete('/orthopedic-needs/:id', (req, res) => {
     const { id } = req.params;
-    const sqlQuery = 'DELETE FROM orthotic_needs WHERE id = ?';
+    const sqlQuery = 'DELETE FROM orthopedic_needs WHERE id = ?';
     connection.query(sqlQuery, [id], (err, results) => {
         if (err) {
             console.error('Error executing query:', err.message);
@@ -83,9 +83,9 @@ app.delete('/orthotic-needs/:id', (req, res) => {
 
 
 
-// Route to get orthotic reasons data
-app.get('/orthotic-reasons', (req, res) => {
-    const sqlQuery = 'SELECT reason_uk, reason_en, icon_url FROM orthotic_reasons';
+// Route to get orthopedic reasons data
+app.get('/orthopedic-reasons', (req, res) => {
+    const sqlQuery = 'SELECT reason_uk, reason_en, icon_url FROM orthopedic_reasons';
     connection.query(sqlQuery, (err, results) => {
         if (err) {
             console.error('Error executing query:', err.message);
@@ -99,10 +99,10 @@ app.get('/orthotic-reasons', (req, res) => {
     });
 });
 
-// Route to add a new orthotic reason
-app.post('/orthotic-reasons', (req, res) => {
+// Route to add a new orthopedic reason
+app.post('/orthopedic-reasons', (req, res) => {
     const { reason_uk, reason_en, icon_url } = req.body;
-    const sqlQuery = 'INSERT INTO orthotic_reasons (reason_uk, reason_en, icon_url) VALUES (?, ?, ?)';
+    const sqlQuery = 'INSERT INTO orthopedic_reasons (reason_uk, reason_en, icon_url) VALUES (?, ?, ?)';
     connection.query(sqlQuery, [reason_uk, reason_en, icon_url], (err, results) => {
         if (err) {
             console.error('Error executing query:', err.message);
@@ -113,10 +113,10 @@ app.post('/orthotic-reasons', (req, res) => {
     });
 });
 
-// Route to delete an orthotic reason by ID
-app.delete('/orthotic-reasons/:id', (req, res) => {
+// Route to delete an orthopedic reason by ID
+app.delete('/orthopedic-reasons/:id', (req, res) => {
     const { id } = req.params;
-    const sqlQuery = 'DELETE FROM orthotic_reasons WHERE id = ?';
+    const sqlQuery = 'DELETE FROM orthopedic_reasons WHERE id = ?';
     connection.query(sqlQuery, [id], (err, results) => {
         if (err) {
             console.error('Error executing query:', err.message);
@@ -130,9 +130,9 @@ app.delete('/orthotic-reasons/:id', (req, res) => {
 });
 
 
-// Route to get orthotic advantages data
-app.get('/orthotic-advantages', (req, res) => {
-    const sqlQuery = 'SELECT advantage_uk, advantage_en, icon_url FROM orthotic_advantages';
+// Route to get orthopedic advantages data
+app.get('/orthopedic-advantages', (req, res) => {
+    const sqlQuery = 'SELECT advantage_uk, advantage_en, icon_url FROM orthopedic_advantages';
     connection.query(sqlQuery, (err, results) => {
         if (err) {
             console.error('Error executing query:', err.message);
@@ -146,10 +146,10 @@ app.get('/orthotic-advantages', (req, res) => {
     });
 });
 
-// Route to add a new orthotic advantage
-app.post('/orthotic-advantages', (req, res) => {
+// Route to add a new orthopedic advantage
+app.post('/orthopedic-advantages', (req, res) => {
     const { advantage_uk, advantage_en, icon_url } = req.body;
-    const sqlQuery = 'INSERT INTO orthotic_advantages (advantage_uk, advantage_en, icon_url) VALUES (?, ?, ?)';
+    const sqlQuery = 'INSERT INTO orthopedic_advantages (advantage_uk, advantage_en, icon_url) VALUES (?, ?, ?)';
     connection.query(sqlQuery, [advantage_uk, advantage_en, icon_url], (err, results) => {
         if (err) {
             console.error('Error executing query:', err.message);
@@ -160,10 +160,10 @@ app.post('/orthotic-advantages', (req, res) => {
     });
 });
 
-// Route to delete an orthotic advantage by ID
-app.delete('/orthotic-advantages/:id', (req, res) => {
+// Route to delete an orthopedic advantage by ID
+app.delete('/orthopedic-advantages/:id', (req, res) => {
     const { id } = req.params;
-    const sqlQuery = 'DELETE FROM orthotic_advantages WHERE id = ?';
+    const sqlQuery = 'DELETE FROM orthopedic_advantages WHERE id = ?';
     connection.query(sqlQuery, [id], (err, results) => {
         if (err) {
             console.error('Error executing query:', err.message);
