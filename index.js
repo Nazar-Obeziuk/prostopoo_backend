@@ -43,7 +43,7 @@ app.get('/orthotic-needs', (req, res) => {
         } else {
             // Update icon_url to provide full path
             results.forEach(result => {
-                result.icon_url = `${req.protocol}://${req.get('host')}/images/${path.basename(result.icon_url)}`;
+                result.icon_url = `${req.protocol}://${req.get('host')}/img/${path.basename(result.icon_url)}`;
             });
             res.json(results);
         }
