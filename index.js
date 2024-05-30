@@ -35,7 +35,7 @@ app.get('/', (req, res) => {
 
 // Route to get orthotic needs data
 app.get('/orthotic-needs', (req, res) => {
-    const sqlQuery = 'SELECT group_name_uk, group_name_en, icon_url FROM orthotic_needs';
+    const sqlQuery = 'SELECT * FROM orthotic_needs';
     connection.query(sqlQuery, (err, results) => {
         if (err) {
             console.error('Error executing query:', err.message);
@@ -49,6 +49,38 @@ app.get('/orthotic-needs', (req, res) => {
         }
     });
 });
+
+
+// Route to add a new orthotic need
+app.post('/orthotic-needs', (req, res) => {
+    const { group_name_uk, group_name_en, icon_url } = req.body;
+    const sqlQuery = 'INSERT INTO orthotic_needs (group_name_uk, group_name_en, icon_url) VALUES (?, ?, ?)';
+    connection.query(sqlQuery, [group_name_uk, group_name_en, icon_url], (err, results) => {
+        if (err) {
+            console.error('Error executing query:', err.message);
+            res.status(500).send('Server error');
+        } else {
+            res.status(201).send({ id: results.insertId, group_name_uk, group_name_en, icon_url });
+        }
+    });
+});
+
+// Route to delete an orthotic need by ID
+app.delete('/orthotic-needs/:id', (req, res) => {
+    const { id } = req.params;
+    const sqlQuery = 'DELETE FROM orthotic_needs WHERE id = ?';
+    connection.query(sqlQuery, [id], (err, results) => {
+        if (err) {
+            console.error('Error executing query:', err.message);
+            res.status(500).send('Server error');
+        } else if (results.affectedRows === 0) {
+            res.status(404).send('No entry found with the given ID');
+        } else {
+            res.status(200).send(`Entry with ID ${id} deleted successfully`);
+        }
+    });
+});
+
 
 // Start server
 app.listen(PORT, () => {
