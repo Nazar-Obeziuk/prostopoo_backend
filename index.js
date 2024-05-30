@@ -26,7 +26,7 @@ connection.connect((err) => {
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use('/img', express.static(path.join(__dirname, 'images')));
+app.use('/img', express.static(path.join(__dirname, 'img')));
 
 // Routes
 app.get('/', (req, res) => {
