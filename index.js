@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql');
 const path = require('path');
-const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 const PORT = process.env.PORT || 4001;
@@ -59,14 +58,13 @@ app.post('/orthopedic-needs', (req, res) => {
         }
 
         const { group_name_uk, group_name_en, icon_url } = req.body;
-        const id = uuidv4();
-        const sqlQuery = 'INSERT INTO orthopedic_needs (id, group_name_uk, group_name_en, icon_url) VALUES (?, ?, ?, ?)';
-        connection.query(sqlQuery, [id, group_name_uk, group_name_en, icon_url], (err, results) => {
+        const sqlQuery = 'INSERT INTO orthopedic_needs (group_name_uk, group_name_en, icon_url) VALUES (?, ?, ?)';
+        connection.query(sqlQuery, [group_name_uk, group_name_en, icon_url], (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.message);
                 res.status(500).send('Server error');
             } else {
-                res.status(201).send({ id, group_name_uk, group_name_en, icon_url });
+                res.status(201).send({ id: results.insertId, group_name_uk, group_name_en, icon_url });
             }
             connection.end();
         });
@@ -136,14 +134,13 @@ app.post('/orthopedic-reasons', (req, res) => {
         }
 
         const { reason_uk, reason_en, icon_url } = req.body;
-        const id = uuidv4();
-        const sqlQuery = 'INSERT INTO orthopedic_reasons (id, reason_uk, reason_en, icon_url) VALUES (?, ?, ?, ?)';
-        connection.query(sqlQuery, [id, reason_uk, reason_en, icon_url], (err, results) => {
+        const sqlQuery = 'INSERT INTO orthopedic_reasons (reason_uk, reason_en, icon_url) VALUES (?, ?, ?)';
+        connection.query(sqlQuery, [reason_uk, reason_en, icon_url], (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.message);
                 res.status(500).send('Server error');
             } else {
-                res.status(201).send({ id, reason_uk, reason_en, icon_url });
+                res.status(201).send({ id: results.insertId, reason_uk, reason_en, icon_url });
             }
             connection.end();
         });
@@ -213,14 +210,13 @@ app.post('/orthopedic-advantages', (req, res) => {
         }
 
         const { advantage_uk, advantage_en, icon_url } = req.body;
-        const id = uuidv4();
-        const sqlQuery = 'INSERT INTO orthopedic_advantages (id, advantage_uk, advantage_en, icon_url) VALUES (?, ?, ?, ?)';
-        connection.query(sqlQuery, [id, advantage_uk, advantage_en, icon_url], (err, results) => {
+        const sqlQuery = 'INSERT INTO orthopedic_advantages (advantage_uk, advantage_en, icon_url) VALUES (?, ?, ?)';
+        connection.query(sqlQuery, [advantage_uk, advantage_en, icon_url], (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.message);
                 res.status(500).send('Server error');
             } else {
-                res.status(201).send({ id, advantage_uk, advantage_en, icon_url });
+                res.status(201).send({ id: results.insertId, advantage_uk, advantage_en, icon_url });
             }
             connection.end();
         });
@@ -252,6 +248,7 @@ app.delete('/orthopedic-advantages/:id', (req, res) => {
         });
     });
 });
+
 
 app.get('/experts', (req, res) => {
     const connection = mysql.createConnection(dbConfig);
@@ -287,19 +284,19 @@ app.post('/experts', (req, res) => {
         }
 
         const { name_uk, name_en, title_uk, title_en, description_uk, description_en, certificate_urls } = req.body;
-        const id = uuidv4();
-        const sqlQuery = 'INSERT INTO experts (id, name_uk, name_en, title_uk, title_en, description_uk, description_en, certificate_urls) VALUES (?, ?, ?, ?, ?, ?, ?)';
-        connection.query(sqlQuery, [id, name_uk, name_en, title_uk, title_en, description_uk, description_en, JSON.stringify(certificate_urls)], (err, results) => {
+        const sqlQuery = 'INSERT INTO experts (name_uk, name_en, title_uk, title_en, description_uk, description_en, certificate_urls) VALUES (?, ?, ?, ?, ?, ?, ?)';
+        connection.query(sqlQuery, [name_uk, name_en, title_uk, title_en, description_uk, description_en, JSON.stringify(certificate_urls)], (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.message);
                 res.status(500).send('Server error');
             } else {
-                res.status(201).send({ id, name_uk, name_en, title_uk, title_en, description_uk, description_en, certificate_urls });
+                res.status(201).send({ id: results.insertId, name_uk, name_en, title_uk, title_en, description_uk, description_en, certificate_urls });
             }
             connection.end();
         });
     });
 });
+
 
 app.delete('/experts/:id', (req, res) => {
     const connection = mysql.createConnection(dbConfig);
@@ -361,19 +358,19 @@ app.post('/reviews', (req, res) => {
         }
 
         const { expert_id, name_uk, name_en, review_uk, review_en, rating } = req.body;
-        const id = uuidv4();
-        const sqlQuery = 'INSERT INTO reviews (id, expert_id, name_uk, name_en, review_uk, review_en, rating) VALUES (?, ?, ?, ?, ?, ?, ?)';
-        connection.query(sqlQuery, [id, expert_id, name_uk, name_en, review_uk, review_en, rating], (err, results) => {
+        const sqlQuery = 'INSERT INTO reviews (expert_id, name_uk, name_en, review_uk, review_en, rating) VALUES (?, ?, ?, ?, ?, ?)';
+        connection.query(sqlQuery, [expert_id, name_uk, name_en, review_uk, review_en, rating], (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.message);
                 res.status(500).send('Server error');
             } else {
-                res.status(201).send({ id, expert_id, name_uk, name_en, review_uk, review_en, rating });
+                res.status(201).send({ id: results.insertId, expert_id, name_uk, name_en, review_uk, review_en, rating });
             }
             connection.end();
         });
     });
 });
+
 
 app.delete('/reviews/:id', (req, res) => {
     const connection = mysql.createConnection(dbConfig);
@@ -400,6 +397,7 @@ app.delete('/reviews/:id', (req, res) => {
         });
     });
 });
+
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
