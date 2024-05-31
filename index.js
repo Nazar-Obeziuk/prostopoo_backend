@@ -107,7 +107,7 @@ app.get('/orthopedic-reasons', (req, res) => {
             return;
         }
 
-        const sqlQuery = 'SELECT reason_uk, reason_en, icon_url FROM orthopedic_reasons';
+        const sqlQuery = 'SELECT * FROM orthopedic_reasons';
         connection.query(sqlQuery, (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.message);
@@ -183,7 +183,7 @@ app.get('/orthopedic-advantages', (req, res) => {
             return;
         }
 
-        const sqlQuery = 'SELECT advantage_uk, advantage_en, icon_url FROM orthopedic_advantages';
+        const sqlQuery = 'SELECT * FROM orthopedic_advantages';
         connection.query(sqlQuery, (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.message);
