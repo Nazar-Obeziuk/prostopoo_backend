@@ -359,19 +359,28 @@ app.post('/reviews', (req, res) => {
             return;
         }
 
-        const { expert_id, name_uk, name_en, review_uk, review_en, rating } = req.body;
-        const sqlQuery = 'INSERT INTO reviews (expert_id, name_uk, name_en, review_uk, review_en, rating) VALUES (?, ?, ?, ?, ?, ?)';
-        connection.query(sqlQuery, [expert_id, name_uk, name_en, review_uk, review_en, rating], (err, results) => {
+        const { stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en } = req.body;
+
+        console.log('Received data:', req.body);
+
+        const sqlQuery = `
+            INSERT INTO reviews (stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        connection.query(sqlQuery, [stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en], (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.message);
                 res.status(500).send('Server error');
             } else {
-                res.status(201).send({ id: results.insertId, expert_id, name_uk, name_en, review_uk, review_en, rating });
+                res.status(201).send({ id: results.insertId, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en });
             }
             connection.end();
         });
     });
 });
+
+
 
 
 app.delete('/reviews/:id', (req, res) => {
