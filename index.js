@@ -400,6 +400,32 @@ app.delete('/reviews/:id', (req, res) => {
     });
 });
 
+app.get('/reviews/:id', (req, res) => {
+    const connection = mysql.createConnection(dbConfig);
+    const { id } = req.params;
+
+    connection.connect((err) => {
+        if (err) {
+            console.error('Error connecting to database: ' + err.stack);
+            return res.status(500).send('Database connection error');
+        }
+
+        const sqlQuery = 'SELECT * FROM reviews WHERE id = ?';
+        connection.query(sqlQuery, [id], (err, results) => {
+            if (err) {
+                console.error('Error executing query:', err.message);
+                return res.status(500).send('Server error');
+            }
+            if (results.length === 0) {
+                return res.status(404).send('No entry found with the given ID');
+            }
+            res.json(results[0]);
+            connection.end();
+        });
+    });
+});
+
+
 
 // CRUD operations for Orthopedic Insoles
 app.get('/home/catalog/orthopedic-insoles', (req, res) => {
@@ -991,8 +1017,6 @@ app.delete('/home/workers/:id', (req, res) => {
         });
     });
 });
-
-
 
 
 app.listen(PORT, () => {
