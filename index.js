@@ -434,6 +434,41 @@ app.get('/reviews/:id', (req, res) => {
     });
 });
 
+app.put('/reviews/:id', (req, res) => {
+    const connection = mysql.createConnection(dbConfig);
+    const { id } = req.params;
+    const { stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en } = req.body;
+
+    connection.connect((err) => {
+        if (err) {
+            console.error('Error connecting to database: ' + err.stack);
+            res.status(500).send('Database connection error');
+            return;
+        }
+
+        console.log('Received data for update:', req.body);
+
+        const sqlQuery = `
+            UPDATE reviews 
+            SET stars = ?, name_ua = ?, name_en = ?, description_ua = ?, description_en = ?, pluses_ua = ?, pluses_en = ?, minuses_ua = ?, minuses_en = ?
+            WHERE id = ?
+        `;
+
+        connection.query(sqlQuery, [stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en, id], (err, results) => {
+            if (err) {
+                console.error('Error executing query:', err.message);
+                res.status(500).send('Server error');
+            } else if (results.affectedRows === 0) {
+                res.status(404).send('No entry found with the given ID');
+            } else {
+                res.status(200).send(`Entry with ID ${id} updated successfully`);
+            }
+            connection.end();
+        });
+    });
+});
+
+
 
 
 // CRUD operations for Orthopedic Insoles
