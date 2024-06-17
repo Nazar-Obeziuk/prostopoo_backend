@@ -10,14 +10,6 @@ const app = express();
 const PORT = process.env.PORT || 4001;
 
 
-const corsOptions = {
-    origin: '*', // Дозволити всі домени
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Дозволені методи
-    preflightContinue: false,
-    optionsSuccessStatus: 204
-};
-
-
 // Routes
 const orthopedicNeedsRoutes = require('./routes/orthopedicNeedsRoutes');
 const orthopedicReasonsRoutes = require('./routes/orthopedicReasonsRoutes');
@@ -38,8 +30,7 @@ app.use(express.json());
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
 
-
-app.use(cors(corsOptions));
+app.use(cors());
 
 const dbConfig = {
     host: 'ni514080.mysql.tools',
