@@ -10,6 +10,14 @@ const app = express();
 const PORT = process.env.PORT || 4001;
 
 
+const corsOptions = {
+    origin: '*', // Дозволити всі домени
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Дозволені методи
+    preflightContinue: false,
+    optionsSuccessStatus: 204
+};
+
+
 // Routes
 const orthopedicNeedsRoutes = require('./routes/orthopedicNeedsRoutes');
 const orthopedicReasonsRoutes = require('./routes/orthopedicReasonsRoutes');
@@ -26,10 +34,12 @@ app.get('/', (req, res) => {
 
 // Use
 
-app.use(cors());
 app.use(express.json());
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
+
+
+app.use(cors(corsOptions));
 
 const dbConfig = {
     host: 'ni514080.mysql.tools',
@@ -255,8 +265,6 @@ app.put('/reviews/:id', (req, res) => {
         });
     });
 });
-
-
 
 
 // CRUD operations for Orthopedic Insoles
