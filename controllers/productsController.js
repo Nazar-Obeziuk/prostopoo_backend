@@ -19,8 +19,8 @@ exports.getProducts = (req, res) => {
                 p.description_ua AS product_description_ua,
                 p.base_price AS product_base_price,
                 p.image_url AS product_image_url,
-                COALESCE(AVG(r.rating), 0) AS average_rating,
-                COUNT(r.id) AS reviews_count
+                COALESCE(AVG(r.rating), 0) AS product_average_rating,
+                COUNT(r.id) AS product_reviews_count
             FROM 
                 products p
             LEFT JOIN
