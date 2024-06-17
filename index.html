@@ -11,10 +11,10 @@
 
     <script>
 
-        fetch("https://prostopoo-back.vercel.app/products")
-            .then((res) => res.json())
-            .then((data) => console.log(data));
-
+        fetch('https://prostopoo-back.vercel.app/products')
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error('Error:', error));
 
 
     </script>
