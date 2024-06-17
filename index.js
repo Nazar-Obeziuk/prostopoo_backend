@@ -29,10 +29,9 @@ app.get('/', (req, res) => {
 app.use(express.json());
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
-
 const allowedOrigins = ['http://localhost:3000', 'https://prostopoo.vercel.app', 'http://127.0.0.1:5500'];
 
-const corsOptions = {
+app.use(cors({
     origin: (origin, callback) => {
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
@@ -41,25 +40,13 @@ const corsOptions = {
         }
     },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+    allowedHeaders: ['Origin', X - Requested - With', Content-Type', 'Accept', 'Authorization'],
     credentials: true,
     optionsSuccessStatus: 204
-};
+}));
 
-app.use(cors(corsOptions));
+app.options('*', cors()); // Обробка preflight-запитів
 
-// Додаткові заголовки для preflight-запитів
-app.options('*', cors(corsOptions));
-
-app.use((req, res, next) => {
-    const origin = req.headers.origin;
-    if (allowedOrigins.includes(origin)) {
-        res.header('Access-Control-Allow-Origin', origin);
-    }
-    res.header('Access-Control-Allow-Methods', 'GET,HEAD,OPTIONS,POST,PUT');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-    next();
-});
 
 const dbConfig = {
     host: 'ni514080.mysql.tools',
