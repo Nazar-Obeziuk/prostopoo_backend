@@ -10,7 +10,27 @@ exports.getProducts = (req, res) => {
             console.error('Error connecting to database: ' + err.stack);
             return res.status(500).send('Database connection error');
         }
-        const sqlQuery = 'SELECT * FROM products';
+        const sqlQuery = `
+            SELECT 
+                p.id AS product_id,
+                p.name_en AS product_name_en,
+                p.name_ua AS product_name_ua,
+                p.description_en AS product_description_en,
+                p.description_ua AS product_description_ua,
+                p.base_price AS product_base_price,
+                p.image_url AS product_image_url,
+                COALESCE(AVG(r.rating), 0) AS average_rating,
+                COUNT(r.id) AS reviews_count
+            FROM 
+                products p
+            LEFT JOIN
+                product_reviews r ON p.id = r.product_id
+            GROUP BY 
+                p.id
+            ORDER BY 
+                p.id;
+        `;
+
         connection.query(sqlQuery, (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.message);
@@ -33,9 +53,9 @@ exports.getProduct = (req, res) => {
         const sqlQuery = `SELECT 
             p.id AS product_id,
             p.name_en AS product_name_en,
-            p.name_uk AS product_name_uk,
+            p.name_ua AS product_name_ua,
             p.description_en AS product_description_en,
-            p.description_uk AS product_description_uk,
+            p.description_ua AS product_description_ua,
             p.base_price AS product_base_price,
             p.image_url AS product_image_url,
             v.type AS variation_type,
