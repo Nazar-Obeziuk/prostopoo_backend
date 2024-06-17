@@ -40,13 +40,12 @@ app.use(cors({
         }
     },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    allowedHeaders: ['Origin', X - Requested - With', Content-Type', 'Accept', 'Authorization'],
+    allowedHeaders: ['Origin', 'X-Requested-With', 'Content - Type', 'Accept', 'Authorization'],
     credentials: true,
     optionsSuccessStatus: 204
 }));
 
 app.options('*', cors()); // Обробка preflight-запитів
-
 
 const dbConfig = {
     host: 'ni514080.mysql.tools',
