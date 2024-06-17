@@ -1,10 +1,35 @@
+// Lib
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql');
 const path = require('path');
 
+
+// Config
 const app = express();
 const PORT = process.env.PORT || 4001;
+
+
+// Routes
+const orthopedicNeedsRoutes = require('./routes/orthopedicNeedsRoutes');
+const orthopedicReasonsRoutes = require('./routes/orthopedicReasonsRoutes');
+const productsRoutes = require('./routes/productsRoutes');
+
+app.use('/orthopedic-needs', orthopedicNeedsRoutes);
+app.use('/orthopedic-reason', orthopedicReasonsRoutes);
+app.use('/products', productsRoutes);
+
+
+app.get('/', (req, res) => {
+    res.send('Welcome to PROSTOPOO API');
+});
+
+// Use
+
+app.use(cors());
+app.use(express.json());
+app.use('/images', express.static(path.join(__dirname, 'images')));
+
 
 const dbConfig = {
     host: 'ni514080.mysql.tools',
@@ -12,243 +37,6 @@ const dbConfig = {
     password: 'iX9xR(s)54',
     database: 'ni514080_prostopoo',
 };
-
-app.use(cors());
-app.use(express.json());
-app.use('/images', express.static(path.join(__dirname, 'images')));
-
-app.get('/', (req, res) => {
-    res.send('Welcome to PROSTOPOO API');
-});
-
-app.get('/orthopedic-needs', (req, res) => {
-    const connection = mysql.createConnection(dbConfig);
-
-    connection.connect((err) => {
-        if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            res.status(500).send('Database connection error');
-            return;
-        }
-
-        const sqlQuery = 'SELECT * FROM orthopedic_needs';
-        connection.query(sqlQuery, (err, results) => {
-            if (err) {
-                console.error('Error executing query:', err.message);
-                res.status(500).send('Server error');
-            } else {
-                results.forEach(result => {
-                    result.icon_url = `${req.protocol}://${req.get('host')}/images/${path.basename(result.icon_url)}`;
-                });
-                res.json(results);
-            }
-            connection.end();
-        });
-    });
-});
-
-app.post('/orthopedic-needs', (req, res) => {
-    const connection = mysql.createConnection(dbConfig);
-
-    connection.connect((err) => {
-        if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            res.status(500).send('Database connection error');
-            return;
-        }
-
-        const { group_name_uk, group_name_en, icon_url } = req.body;
-        const sqlQuery = 'INSERT INTO orthopedic_needs (group_name_uk, group_name_en, icon_url) VALUES (?, ?, ?)';
-        connection.query(sqlQuery, [group_name_uk, group_name_en, icon_url], (err, results) => {
-            if (err) {
-                console.error('Error executing query:', err.message);
-                res.status(500).send('Server error');
-            } else {
-                res.status(201).send({ id: results.insertId, group_name_uk, group_name_en, icon_url });
-            }
-            connection.end();
-        });
-    });
-});
-
-app.delete('/orthopedic-needs/:id', (req, res) => {
-    const connection = mysql.createConnection(dbConfig);
-
-    connection.connect((err) => {
-        if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            res.status(500).send('Database connection error');
-            return;
-        }
-
-        const { id } = req.params;
-        const sqlQuery = 'DELETE FROM orthopedic_needs WHERE id = ?';
-        connection.query(sqlQuery, [id], (err, results) => {
-            if (err) {
-                console.error('Error executing query:', err.message);
-                res.status(500).send('Server error');
-            } else if (results.affectedRows === 0) {
-                res.status(404).send('No entry found with the given ID');
-            } else {
-                res.status(200).send(`Entry with ID ${id} deleted successfully`);
-            }
-            connection.end();
-        });
-    });
-});
-
-app.get('/orthopedic-reasons', (req, res) => {
-    const connection = mysql.createConnection(dbConfig);
-
-    connection.connect((err) => {
-        if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            res.status(500).send('Database connection error');
-            return;
-        }
-
-        const sqlQuery = 'SELECT * FROM orthopedic_reasons';
-        connection.query(sqlQuery, (err, results) => {
-            if (err) {
-                console.error('Error executing query:', err.message);
-                res.status(500).send('Server error');
-            } else {
-                results.forEach(result => {
-                    result.icon_url = `${req.protocol}://${req.get('host')}/images/${path.basename(result.icon_url)}`;
-                });
-                res.json(results);
-            }
-            connection.end();
-        });
-    });
-});
-
-app.post('/orthopedic-reasons', (req, res) => {
-    const connection = mysql.createConnection(dbConfig);
-
-    connection.connect((err) => {
-        if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            res.status(500).send('Database connection error');
-            return;
-        }
-
-        const { reason_uk, reason_en, icon_url } = req.body;
-        const sqlQuery = 'INSERT INTO orthopedic_reasons (reason_uk, reason_en, icon_url) VALUES (?, ?, ?)';
-        connection.query(sqlQuery, [reason_uk, reason_en, icon_url], (err, results) => {
-            if (err) {
-                console.error('Error executing query:', err.message);
-                res.status(500).send('Server error');
-            } else {
-                res.status(201).send({ id: results.insertId, reason_uk, reason_en, icon_url });
-            }
-            connection.end();
-        });
-    });
-});
-
-app.delete('/orthopedic-reasons/:id', (req, res) => {
-    const connection = mysql.createConnection(dbConfig);
-
-    connection.connect((err) => {
-        if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            res.status(500).send('Database connection error');
-            return;
-        }
-
-        const { id } = req.params;
-        const sqlQuery = 'DELETE FROM orthopedic_reasons WHERE id = ?';
-        connection.query(sqlQuery, [id], (err, results) => {
-            if (err) {
-                console.error('Error executing query:', err.message);
-                res.status(500).send('Server error');
-            } else if (results.affectedRows === 0) {
-                res.status(404).send('No entry found with the given ID');
-            } else {
-                res.status(200).send(`Entry with ID ${id} deleted successfully`);
-            }
-            connection.end();
-        });
-    });
-});
-
-app.get('/orthopedic-advantages', (req, res) => {
-    const connection = mysql.createConnection(dbConfig);
-
-    connection.connect((err) => {
-        if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            res.status(500).send('Database connection error');
-            return;
-        }
-
-        const sqlQuery = 'SELECT * FROM orthopedic_advantages';
-        connection.query(sqlQuery, (err, results) => {
-            if (err) {
-                console.error('Error executing query:', err.message);
-                res.status(500).send('Server error');
-            } else {
-                results.forEach(result => {
-                    result.icon_url = `${req.protocol}://${req.get('host')}/images/${path.basename(result.icon_url)}`;
-                });
-                res.json(results);
-            }
-            connection.end();
-        });
-    });
-});
-
-app.post('/orthopedic-advantages', (req, res) => {
-    const connection = mysql.createConnection(dbConfig);
-
-    connection.connect((err) => {
-        if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            res.status(500).send('Database connection error');
-            return;
-        }
-
-        const { advantage_uk, advantage_en, icon_url } = req.body;
-        const sqlQuery = 'INSERT INTO orthopedic_advantages (advantage_uk, advantage_en, icon_url) VALUES (?, ?, ?)';
-        connection.query(sqlQuery, [advantage_uk, advantage_en, icon_url], (err, results) => {
-            if (err) {
-                console.error('Error executing query:', err.message);
-                res.status(500).send('Server error');
-            } else {
-                res.status(201).send({ id: results.insertId, advantage_uk, advantage_en, icon_url });
-            }
-            connection.end();
-        });
-    });
-});
-
-app.delete('/orthopedic-advantages/:id', (req, res) => {
-    const connection = mysql.createConnection(dbConfig);
-
-    connection.connect((err) => {
-        if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            res.status(500).send('Database connection error');
-            return;
-        }
-
-        const { id } = req.params;
-        const sqlQuery = 'DELETE FROM orthopedic_advantages WHERE id = ?';
-        connection.query(sqlQuery, [id], (err, results) => {
-            if (err) {
-                console.error('Error executing query:', err.message);
-                res.status(500).send('Server error');
-            } else if (results.affectedRows === 0) {
-                res.status(404).send('No entry found with the given ID');
-            } else {
-                res.status(200).send(`Entry with ID ${id} deleted successfully`);
-            }
-            connection.end();
-        });
-    });
-});
-
 
 app.get('/experts', (req, res) => {
     const connection = mysql.createConnection(dbConfig);
@@ -1061,6 +849,7 @@ app.delete('/home/workers/:id', (req, res) => {
         });
     });
 });
+
 
 
 app.listen(PORT, () => {
