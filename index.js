@@ -9,13 +9,8 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 4001;
 
-// Використання CORS middleware
-const corsOptions = {
-    origin: '*', // Налаштуйте це за потреби
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'], // Додайте інші заголовки за потреби
-};
-app.use(cors(corsOptions));
+
+app.use(cors());
 
 
 app.get('/', (req, res) => {
