@@ -52,7 +52,6 @@ exports.getProducts = (req, res) => {
     });
 };
 
-
 exports.getProduct = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { id } = req.params;
@@ -109,8 +108,8 @@ exports.getProduct = (req, res) => {
                     return;
                 }
 
-                let urls = results[0].product_image_url.split(",");
-                let modUrl = urls.map(el => `${serverUrl}${el.trim()}`);
+                let product_image_urls = results[0].product_image_url ? results[0].product_image_url.split(",") : [];
+                let modUrl = product_image_urls.map(el => `${serverUrl}${el.trim()}`);
 
                 const product = {
                     product_product_id: results[0].product_id,
@@ -129,14 +128,13 @@ exports.getProduct = (req, res) => {
                 };
 
                 results.forEach(row => {
-
-                    let urls = row.variation_image_url.split(",");
-                    let modUrl = urls.map(el => `${serverUrl}${el.trim()}`);
+                    let variation_image_urls = row.variation_image_url ? row.variation_image_url.split(",") : [];
+                    let modVariationUrl = variation_image_urls.map(el => `${serverUrl}${el.trim()}`);
 
                     const variation = {
                         value: row.variation_value,
                         additional_price: row.additional_price,
-                        image_url: JSON.stringify(modUrl),
+                        image_url: JSON.stringify(modVariationUrl),
                         article: row.article,
                         description_en: row.variation_description_en,
                         description_ua: row.variation_description_ua
