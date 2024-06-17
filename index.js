@@ -10,6 +10,19 @@ const app = express();
 const PORT = process.env.PORT || 4001;
 
 
+
+app.get('/', (req, res) => {
+    res.send('Welcome to PROSTOPOO API');
+});
+
+// Use
+app.use(express.json());
+app.use('/images', express.static(path.join(__dirname, 'images')));
+
+app.use(cors());
+
+
+
 // Routes
 const orthopedicNeedsRoutes = require('./routes/orthopedicNeedsRoutes');
 const orthopedicReasonsRoutes = require('./routes/orthopedicReasonsRoutes');
@@ -20,21 +33,6 @@ app.use('/orthopedic-reason', orthopedicReasonsRoutes);
 app.use('/products', productsRoutes);
 
 
-app.get('/', (req, res) => {
-    res.send('Welcome to PROSTOPOO API');
-});
-
-// Use
-app.use(express.json());
-app.use('/images', express.static(path.join(__dirname, 'images')));
-
-const corsOptions = {
-    origin: '*', // Adjust this as needed for your setup
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'], // Add other headers as needed
-};
-
-app.use(cors(corsOptions));
 
 const dbConfig = {
     host: 'ni514080.mysql.tools',
