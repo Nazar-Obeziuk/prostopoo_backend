@@ -25,27 +25,16 @@ app.get('/', (req, res) => {
 });
 
 // Use
-
 app.use(express.json());
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
-const allowedOrigins = ['http://localhost:3000', 'https://prostopoo.vercel.app', 'http://127.0.0.1:5500'];
+const corsOptions = {
+    origin: '*', // Adjust this as needed for your setup
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'], // Add other headers as needed
+};
 
-app.use(cors({
-    origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    allowedHeaders: ['Origin', 'X-Requested-With', 'Content - Type', 'Accept', 'Authorization'],
-    credentials: true,
-    optionsSuccessStatus: 204
-}));
-
-app.options('*', cors()); // Обробка preflight-запитів
+app.use(cors(corsOptions));
 
 const dbConfig = {
     host: 'ni514080.mysql.tools',
