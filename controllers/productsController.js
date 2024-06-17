@@ -21,6 +21,7 @@ exports.getProducts = (req, res) => {
                 p.description_ua AS product_description_ua,
                 p.base_price AS product_base_price,
                 p.image_url AS product_image_url,
+                p.article AS product_article,
                 COALESCE(AVG(r.rating), 0) AS product_average_rating,
                 COUNT(r.id) AS product_reviews_count
             FROM 
@@ -72,6 +73,7 @@ exports.getProduct = (req, res) => {
                 p.description_ua AS product_description_ua,
                 p.base_price AS product_base_price,
                 p.image_url AS product_image_url,
+                p.article AS product_article,
                 COALESCE(AVG(r.rating), 0) AS product_average_rating,
                 COUNT(r.id) AS product_reviews_count,
                 pv.variation_type,
@@ -121,6 +123,8 @@ exports.getProduct = (req, res) => {
                     product_image_url: JSON.stringify(modUrl),
                     product_average_rating: results[0].product_average_rating,
                     product_reviews_count: results[0].product_reviews_count,
+                    product_reviews_count: results[0].product_reviews_count,
+                    product_article: results[0].product_article,
                     product_variations: {
                         colors: [],
                         sizes: []
