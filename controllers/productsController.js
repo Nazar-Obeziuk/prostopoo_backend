@@ -41,9 +41,13 @@ exports.getProducts = (req, res) => {
             }
 
             results.forEach(product => {
-                let urls = product.product_image_url.split(",");
-                let modUrl = urls.map(el => `${serverUrl}${el.trim()}`);
-                product.product_image_url = JSON.stringify(modUrl);
+                if (product.product_image_url) {
+                    let urls = JSON.parse(product.product_image_url);
+                    let modUrl = urls.map(el => `${serverUrl}${el.trim()}`);
+                    product.product_image_url = modUrl;
+                } else {
+                    product.product_image_url = "[]";
+                }
             });
 
 
@@ -120,7 +124,7 @@ exports.getProduct = (req, res) => {
                     product_description_en: results[0].product_description_en,
                     product_description_ua: results[0].product_description_ua,
                     product_base_price: results[0].product_base_price,
-                    product_image_url: JSON.stringify(modUrl),
+                    product_image_url: modUrl,
                     product_average_rating: results[0].product_average_rating,
                     product_reviews_count: results[0].product_reviews_count,
                     product_reviews_count: results[0].product_reviews_count,
@@ -138,7 +142,7 @@ exports.getProduct = (req, res) => {
                     const variation = {
                         value: row.variation_value,
                         additional_price: row.additional_price,
-                        image_url: JSON.stringify(modVariationUrl),
+                        image_url: modVariationUrl,
                         article: row.article,
                         description_en: row.variation_description_en,
                         description_ua: row.variation_description_ua
