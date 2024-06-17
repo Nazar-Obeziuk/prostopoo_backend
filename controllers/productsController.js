@@ -40,7 +40,9 @@ exports.getProducts = (req, res) => {
             }
 
             results.forEach(product => {
-                product.product_image_url = `${serverUrl}${product.product_image_url}`;
+                let urls = product.product_image_url.split(",");
+                let modUrl = urls.map(el => `${serverUrl}${el.trim()}`);
+                product.product_image_url = JSON.stringify(modUrl);
             });
 
 
@@ -107,6 +109,9 @@ exports.getProduct = (req, res) => {
                     return;
                 }
 
+                let urls = results[0].product_image_url.split(",");
+                let modUrl = urls.map(el => `${serverUrl}${el.trim()}`);
+
                 const product = {
                     product_product_id: results[0].product_id,
                     product_name_en: results[0].product_name_en,
@@ -114,7 +119,7 @@ exports.getProduct = (req, res) => {
                     product_description_en: results[0].product_description_en,
                     product_description_ua: results[0].product_description_ua,
                     product_base_price: results[0].product_base_price,
-                    product_image_url: `${serverUrl}${results[0].product_image_url}`,
+                    product_image_url: JSON.stringify(modUrl),
                     product_average_rating: results[0].product_average_rating,
                     product_reviews_count: results[0].product_reviews_count,
                     product_variations: {
@@ -124,10 +129,14 @@ exports.getProduct = (req, res) => {
                 };
 
                 results.forEach(row => {
+
+                    let urls = row.variation_image_url.split(",");
+                    let modUrl = urls.map(el => `${serverUrl}${el.trim()}`);
+
                     const variation = {
                         value: row.variation_value,
                         additional_price: row.additional_price,
-                        image_url: `${serverUrl}${row.variation_image_url}`,
+                        image_url: JSON.stringify(modUrl),
                         article: row.article,
                         description_en: row.variation_description_en,
                         description_ua: row.variation_description_ua
