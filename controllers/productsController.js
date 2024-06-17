@@ -50,6 +50,7 @@ exports.getProducts = (req, res) => {
     });
 };
 
+
 exports.getProduct = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { id } = req.params;
@@ -69,11 +70,13 @@ exports.getProduct = (req, res) => {
                 p.description_en AS product_description_en,
                 p.description_ua AS product_description_ua,
                 p.base_price AS product_base_price,
-                CONCAT('${serverUrl}', p.image_url) AS product_image_url,
+                p.image_url AS product_image_url,
+                COALESCE(AVG(r.rating), 0) AS product_average_rating,
+                COUNT(r.id) AS product_reviews_count,
                 pv.variation_type,
                 pv.variation_value,
                 pv.additional_price,
-                CONCAT('${serverUrl}', pv.image_url) AS variation_image_url,
+                pv.image_url AS variation_image_url,
                 pv.article,
                 pv.description_en AS variation_description_en,
                 pv.description_ua AS variation_description_ua
@@ -83,8 +86,12 @@ exports.getProduct = (req, res) => {
                 productVariations pv ON p.id = pv.product_id
             LEFT JOIN
                 variations v ON pv.variation_id = v.id
+            LEFT JOIN
+                product_reviews r ON p.id = r.product_id
             WHERE 
                 p.id = ${id}
+            GROUP BY 
+                p.id, pv.id
             ORDER BY 
                 p.id, pv.variation_type;
         `;
@@ -101,14 +108,16 @@ exports.getProduct = (req, res) => {
                 }
 
                 const product = {
-                    product_id: results[0].product_id,
-                    name_en: results[0].product_name_en,
-                    name_ua: results[0].product_name_ua,
-                    description_en: results[0].product_description_en,
-                    description_ua: results[0].product_description_ua,
-                    base_price: results[0].product_base_price,
-                    image_url: results[0].product_image_url,
-                    variations: {
+                    product_product_id: results[0].product_id,
+                    product_name_en: results[0].product_name_en,
+                    product_name_ua: results[0].product_name_ua,
+                    product_description_en: results[0].product_description_en,
+                    product_description_ua: results[0].product_description_ua,
+                    product_base_price: results[0].product_base_price,
+                    product_image_url: `${serverUrl}${results[0].product_image_url}`,
+                    product_average_rating: results[0].product_average_rating,
+                    product_reviews_count: results[0].product_reviews_count,
+                    product_variations: {
                         colors: [],
                         sizes: []
                     }
@@ -118,16 +127,16 @@ exports.getProduct = (req, res) => {
                     const variation = {
                         value: row.variation_value,
                         additional_price: row.additional_price,
-                        image_url: row.variation_image_url,
+                        image_url: `${serverUrl}${row.variation_image_url}`,
                         article: row.article,
                         description_en: row.variation_description_en,
                         description_ua: row.variation_description_ua
                     };
 
                     if (row.variation_type === 'color') {
-                        product.variations.colors.push(variation);
+                        product.product_variations.colors.push(variation);
                     } else if (row.variation_type === 'size') {
-                        product.variations.sizes.push(variation);
+                        product.product_variations.sizes.push(variation);
                     }
                 });
 
