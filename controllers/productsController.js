@@ -5,6 +5,8 @@ const dbConfig = require('../config/dbConfig');
 
 exports.getProducts = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
+    const serverUrl = `${req.protocol}://${req.get('host')}/`;
+
     connection.connect(err => {
         if (err) {
             console.error('Error connecting to database: ' + err.stack);
@@ -36,6 +38,12 @@ exports.getProducts = (req, res) => {
                 console.error('Error executing query:', err.message);
                 return res.status(500).send('Server error');
             }
+
+            results.forEach(product => {
+                product.product_image_url = `${serverUrl}${product.product_image_url}`;
+            });
+
+
             res.json(results);
             connection.end();
         });
