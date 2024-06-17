@@ -123,8 +123,6 @@ app.delete('/experts/:id', (req, res) => {
 app.get('/home/reviews', (req, res) => {
     const connection = mysql.createConnection(dbConfig);
 
-    console.log("ss")
-
     connection.connect((err) => {
         if (err) {
             console.error('Error connecting to database: ' + err.stack);

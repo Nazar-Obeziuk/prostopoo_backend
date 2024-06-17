@@ -58,9 +58,10 @@ exports.getProduct = (req, res) => {
         connection.query(sqlQuery, (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.message);
-                return res.status(500).send('Server error');
+                res.status(500).send('Server error');
+            } else {
+                res.json(results);
             }
-            res.json(results);
             connection.end();
         });
     });
