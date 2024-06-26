@@ -21,17 +21,18 @@ app.get('/', (req, res) => {
 app.use(express.json());
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
-
-
 // Routes
 const orthopedicNeedsRoutes = require('./routes/orthopedicNeedsRoutes');
 const orthopedicReasonsRoutes = require('./routes/orthopedicReasonsRoutes');
 const productsRoutes = require('./routes/productsRoutes');
+const authRoutes = require('./routes/authRoutes');
+const workersRoutes = require('./routes/workersRoutes');
 
 app.use('/orthopedic-needs', orthopedicNeedsRoutes);
 app.use('/orthopedic-reason', orthopedicReasonsRoutes);
 app.use('/products', productsRoutes);
-
+app.use('/auth', authRoutes);
+app.use('/workers', workersRoutes);
 
 
 const dbConfig = {
@@ -745,91 +746,6 @@ app.delete('/home/catalog/orthopedic-insoles/sport-orthopedic-insoles/:id', (req
     const connection = mysql.createConnection(dbConfig);
     const { id } = req.params;
     const sqlQuery = 'DELETE FROM sport_orthopedic_insoles WHERE id = ?';
-    connection.connect(err => {
-        if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            return res.status(500).send('Database connection error');
-        }
-        connection.query(sqlQuery, [id], (err, results) => {
-            if (err) {
-                console.error('Error executing query:', err.message);
-                return res.status(500).send('Server error');
-            }
-            if (results.affectedRows === 0) {
-                return res.status(404).send('No entry found with the given ID');
-            }
-            res.send(`Entry with ID ${id} deleted successfully`);
-            connection.end();
-        });
-    });
-});
-
-
-// CRUD operations for Workers
-app.get('/home/workers', (req, res) => {
-    const connection = mysql.createConnection(dbConfig);
-    connection.connect(err => {
-        if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            return res.status(500).send('Database connection error');
-        }
-        const sqlQuery = 'SELECT * FROM workers';
-        connection.query(sqlQuery, (err, results) => {
-            if (err) {
-                console.error('Error executing query:', err.message);
-                return res.status(500).send('Server error');
-            }
-            res.json(results);
-            connection.end();
-        });
-    });
-});
-
-app.post('/home/workers', (req, res) => {
-    const connection = mysql.createConnection(dbConfig);
-    const { image_url, name_ua, name_en, subtitle_ua, subtitle_en, first_description_ua, first_description_en, second_description_ua, second_description_en, third_description_ua, third_description_en, slider_images } = req.body;
-    const sqlQuery = 'INSERT INTO workers (image_url, name_ua, name_en, subtitle_ua, subtitle_en, first_description_ua, first_description_en, second_description_ua, second_description_en, third_description_ua, third_description_en, slider_images) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-    connection.connect(err => {
-        if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            return res.status(500).send('Database connection error');
-        }
-        connection.query(sqlQuery, [image_url, name_ua, name_en, subtitle_ua, subtitle_en, first_description_ua, first_description_en, second_description_ua, second_description_en, third_description_ua, third_description_en, JSON.stringify(slider_images)], (err, results) => {
-            if (err) {
-                console.error('Error executing query:', err.message);
-                return res.status(500).send('Server error');
-            }
-            res.status(201).send({ id: results.insertId, ...req.body });
-            connection.end();
-        });
-    });
-});
-
-app.put('/home/workers/:id', (req, res) => {
-    const connection = mysql.createConnection(dbConfig);
-    const { id } = req.params;
-    const { image_url, name_ua, name_en, subtitle_ua, subtitle_en, first_description_ua, first_description_en, second_description_ua, second_description_en, third_description_ua, third_description_en, slider_images } = req.body;
-    const sqlQuery = 'UPDATE workers SET image_url = ?, name_ua = ?, name_en = ?, subtitle_ua = ?, subtitle_en = ?, first_description_ua = ?, first_description_en = ?, second_description_ua = ?, second_description_en = ?, third_description_ua = ?, third_description_en = ?, slider_images = ? WHERE id = ?';
-    connection.connect(err => {
-        if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            return res.status(500).send('Database connection error');
-        }
-        connection.query(sqlQuery, [image_url, name_ua, name_en, subtitle_ua, subtitle_en, first_description_ua, first_description_en, second_description_ua, second_description_en, third_description_ua, third_description_en, JSON.stringify(slider_images), id], (err) => {
-            if (err) {
-                console.error('Error executing query:', err.message);
-                return res.status(500).send('Server error');
-            }
-            res.send('Record updated successfully');
-            connection.end();
-        });
-    });
-});
-
-app.delete('/home/workers/:id', (req, res) => {
-    const connection = mysql.createConnection(dbConfig);
-    const { id } = req.params;
-    const sqlQuery = 'DELETE FROM workers WHERE id = ?';
     connection.connect(err => {
         if (err) {
             console.error('Error connecting to database: ' + err.stack);
