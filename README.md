@@ -5,8 +5,6 @@
 - `POST /orthopedic-needs`: Додати нову ортопедичну потребу.
 - `DELETE /orthopedic-needs/:id`: Видалити ортопедичну потребу за ідентифікатором.
 
-фів
-
 ### /orthopedic-reasons
 - `GET /orthopedic-reasons`: Отримати дані щодо ортопедичних причин.
 - `POST /orthopedic-reasons`: Додати нову ортопедичну причину.
