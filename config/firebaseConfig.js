@@ -1,5 +1,9 @@
 const admin = require('firebase-admin');
-const serviceAccount = require('./serviceAccountKey.json');
+const path = require('path');
+require('dotenv').config();
+
+const serviceAccountPath = path.resolve(__dirname, process.env.GOOGLE_APPLICATION_CREDENTIALS);
+const serviceAccount = require(serviceAccountPath);
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
