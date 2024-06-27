@@ -14,7 +14,7 @@
 - `GET /orthopedic-advantages`: Отримати дані щодо ортопедичних переваг.
 - `POST /orthopedic-advantages`: Додати нову ортопедичну перевагу.
 - `DELETE /orthopedic-advantages/:id`: Видалити ортопедичну перевагу за ідентифікатором.
-  
+  s
 ### /experts
 - `GET /experts`: Отримати дані про експертів.
 - `POST /experts`: Додати нового експерта.
