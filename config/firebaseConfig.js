@@ -1,13 +1,15 @@
 const admin = require('firebase-admin');
-const path = require('path');
-require('dotenv').config();
+const dotenv = require('dotenv');
 
-const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-const serviceAccount = JSON.parse(serviceAccountPath);
+// Завантажити змінні середовища з .env файлу
+dotenv.config();
+
+// Ініціалізуйте Firebase Admin SDK з обліковими даними зі змінної середовища
+const serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS);
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    storageBucket: 'gs://prostopoo-cb3a5.appspot.com'
+    storageBucket: 'prostopoo-cb3a5.appspot.com'
 });
 
 const bucket = admin.storage().bucket();
