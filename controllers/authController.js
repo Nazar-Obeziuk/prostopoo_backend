@@ -28,6 +28,9 @@ exports.register = async (req, res) => {
 exports.login = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { email, password } = req.body;
+
+    console.log(req);
+
     const query = 'SELECT * FROM users WHERE email = ?';
 
     connection.query(query, [email], async (err, results) => {

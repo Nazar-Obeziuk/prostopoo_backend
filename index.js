@@ -3,7 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql');
 const path = require('path');
-
+const bodyParser = require('body-parser');
+const multer = require('multer');
 
 // Config
 const app = express();
@@ -11,6 +12,8 @@ const PORT = process.env.PORT || 4001;
 
 
 app.use(cors());
+app.use(bodyParser.json());
+const upload = multer();
 
 
 app.get('/', (req, res) => {

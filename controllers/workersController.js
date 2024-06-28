@@ -85,6 +85,8 @@ exports.createWorker = async (req, res) => {
     let imageUrl = '';
     let sliderImages = [];
     if (req.files && req.files.image) {
+
+        console.log(req.files)
         try {
             imageUrl = await uploadImageToFirebase(req.files.image[0]);
         } catch (err) {
