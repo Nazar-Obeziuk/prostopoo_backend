@@ -25,4 +25,4 @@
 - `POST /reviews`: Додати новий відгук.
 - `DELETE /reviews/:id`: Видалити відгук за ідентифікатором.
 
-nrn
+nrn f ddb avfdv
