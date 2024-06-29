@@ -18,7 +18,7 @@ async function uploadImageToFirebase(file) {
         },
     });
 
-    fs.unlinkSync(tempFilePath); // Видаляємо тимчасовий файл
+    fs.unlinkSync(tempFilePath);
 
     const fileRef = bucket.file(`workers/${uniqueFilename}`);
     await fileRef.makePublic();
@@ -49,6 +49,7 @@ exports.getWorkers = (req, res) => {
                 console.error('Error executing query:', err.message);
                 return res.status(500).send('Server error');
             }
+
             res.json(results);
             connection.end();
         });
@@ -84,6 +85,7 @@ exports.createWorker = async (req, res) => {
 
     let imageUrl = '';
     let sliderImages = [];
+
     if (req.files && req.files.image) {
 
         console.log(req.files)
@@ -110,12 +112,12 @@ exports.createWorker = async (req, res) => {
         }
 
         const sqlQuery = 'INSERT INTO workers (name_ua, name_en, subtitle_ua, subtitle_en, first_description_ua, first_description_en, second_description_ua, second_description_en, third_description_ua, third_description_en, image_url, slider_images) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-        connection.query(sqlQuery, [name_ua, name_en, subtitle_ua, subtitle_en, first_description_ua, first_description_en, second_description_ua, second_description_en, third_description_ua, third_description_en, imageUrl, JSON.stringify(sliderImages)], (err, results) => {
+        connection.query(sqlQuery, [name_ua, name_en, subtitle_ua, subtitle_en, first_description_ua, first_description_en, second_description_ua, second_description_en, third_description_ua, third_description_en, imageUrl, sliderImages], (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.message);
                 return res.status(500).send('Server error');
             }
-            res.status(201).json({ message: 'Worker created successfully', workerId: results.insertId });
+            res.status(201).json({ message: 'Працівник успішно створений', workerId: results.insertId });
             connection.end();
         });
     });
@@ -152,7 +154,7 @@ exports.updateWorker = async (req, res) => {
         }
 
         const sqlQuery = 'UPDATE workers SET name_ua = ?, name_en = ?, subtitle_ua = ?, subtitle_en = ?, first_description_ua = ?, first_description_en = ?, second_description_ua = ?, second_description_en = ?, third_description_ua = ?, third_description_en = ?, image_url = IFNULL(?, image_url), slider_images = IFNULL(?, slider_images) WHERE id = ?';
-        connection.query(sqlQuery, [name_ua, name_en, subtitle_ua, subtitle_en, first_description_ua, first_description_en, second_description_ua, second_description_en, third_description_ua, third_description_en, imageUrl || null, JSON.stringify(sliderImages) || null, id], (err, results) => {
+        connection.query(sqlQuery, [name_ua, name_en, subtitle_ua, subtitle_en, first_description_ua, first_description_en, second_description_ua, second_description_en, third_description_ua, third_description_en, imageUrl || null, sliderImages || null, id], (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.message);
                 return res.status(500).send('Server error');

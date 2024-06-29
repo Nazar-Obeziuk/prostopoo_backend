@@ -8,7 +8,7 @@ router.post('/register', authController.register);
 
 
 router.post('/admin', authenticateToken, authorizeAdmin, (req, res) => {
-    res.json({ message: 'Welcome to the admin panel!' });
+    res.json({ message: 'Вітаємо в адмін панелі!' });
 });
 
 
