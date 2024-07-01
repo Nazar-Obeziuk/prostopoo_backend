@@ -296,3 +296,73 @@ exports.deleteProduct = (req, res) => {
         });
     });
 };
+
+
+
+exports.createVariation = (req, res) => {
+    const connection = mysql.createConnection(dbConfig);
+    const { productId } = req.params;
+    const { variation_type, variation_value, additional_price, article, description_en, description_ua } = req.body;
+
+    connection.connect(err => {
+        if (err) {
+            console.error('Error connecting to database: ' + err.stack);
+            return res.status(500).send('Database connection error');
+        }
+
+        const sqlQuery = 'INSERT INTO productVariations (product_id, variation_type, variation_value, additional_price, article, description_en, description_ua) VALUES (?, ?, ?, ?, ?, ?, ?)';
+        connection.query(sqlQuery, [productId, variation_type, variation_value, additional_price, article, description_en, description_ua], (err, results) => {
+            if (err) {
+                console.error('Error executing query:', err.message);
+                return res.status(500).send('Server error');
+            }
+            res.status(201).json({ message: 'Варіацію успішно створено', variationId: results.insertId });
+            connection.end();
+        });
+    });
+};
+
+exports.updateVariation = (req, res) => {
+    const connection = mysql.createConnection(dbConfig);
+    const { id } = req.params;
+    const { variation_type, variation_value, additional_price, article, description_en, description_ua } = req.body;
+
+    connection.connect(err => {
+        if (err) {
+            console.error('Error connecting to database: ' + err.stack);
+            return res.status(500).send('Database connection error');
+        }
+
+        const sqlQuery = 'UPDATE productVariations SET variation_type = ?, variation_value = ?, additional_price = ?, article = ?, description_en = ?, description_ua = ? WHERE id = ?';
+        connection.query(sqlQuery, [variation_type, variation_value, additional_price, article, description_en, description_ua, id], (err, results) => {
+            if (err) {
+                console.error('Error executing query:', err.message);
+                return res.status(500).send('Server error');
+            }
+            res.json({ message: 'Варіацію успішно оновлено' });
+            connection.end();
+        });
+    });
+};
+
+exports.deleteVariation = (req, res) => {
+    const connection = mysql.createConnection(dbConfig);
+    const { id } = req.params;
+
+    connection.connect(err => {
+        if (err) {
+            console.error('Error connecting to database: ' + err.stack);
+            return res.status(500).send('Database connection error');
+        }
+
+        const sqlQuery = 'DELETE FROM productVariations WHERE id = ?';
+        connection.query(sqlQuery, [id], (err, results) => {
+            if (err) {
+                console.error('Error executing query:', err.message);
+                return res.status(500).send('Server error');
+            }
+            res.json({ message: 'Варіацію успішно видалено' });
+            connection.end();
+        });
+    });
+};
