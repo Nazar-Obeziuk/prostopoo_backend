@@ -143,7 +143,7 @@ exports.getProduct = (req, res) => {
                 }
 
                 let product_image_urls = results[0].product_image_url ? results[0].product_image_url.split(",") : [];
-                let modUrl = product_image_urls.map(el => `${serverUrl}${el.trim()}`);
+                let modUrl = product_image_urls.map(el => `${el.trim()}`);
 
                 const product = {
                     product_id: results[0].product_id,
