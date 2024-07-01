@@ -70,9 +70,8 @@ exports.getProducts = (req, res) => {
 
             results.forEach(product => {
                 if (product.image_url) {
-                    let urls = JSON.parse(product.image_url);
-                    let modUrl = urls.map(el => `${serverUrl}${el.trim()}`);
-                    product.image_url = modUrl;
+                    let urls = product.image_url;
+                    product.image_url = urls;
                 } else {
                     product.image_url = "[]";
                 }
