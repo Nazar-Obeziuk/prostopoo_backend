@@ -71,7 +71,7 @@ exports.getProducts = (req, res) => {
             results.forEach(product => {
                 if (product.image_url) {
                     let urls = product.image_url;
-                    product.image_url = urls;
+                    product.image_url = JSON.parse(urls);
                 } else {
                     product.image_url = "[]";
                 }
