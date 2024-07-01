@@ -162,7 +162,7 @@ exports.updateWorker = async (req, res) => {
                 console.error('Error executing query:', err.message);
                 return res.status(500).send('Server error');
             }
-            res.json({ message: 'Worker updated successfully' });
+            res.json({ message: 'Дані успішно оновлено' });
             connection.end();
         });
     });
@@ -184,7 +184,7 @@ exports.deleteWorker = (req, res) => {
                 console.error('Error executing query:', err.message);
                 return res.status(500).send('Server error');
             }
-            res.json({ message: 'Worker deleted successfully' });
+            res.json({ message: 'Робітника успішно видалено' });
             connection.end();
         });
     });
