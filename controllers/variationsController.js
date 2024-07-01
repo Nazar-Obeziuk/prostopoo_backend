@@ -45,6 +45,17 @@ exports.getVariations = (req, res) => {
                 console.error('Error executing query:', err.message);
                 return res.status(500).send('Server error');
             }
+
+
+            results.forEach(product => {
+                if (product.image_url) {
+                    let urls = product.image_url;
+                    product.image_url = JSON.parse(urls);
+                } else {
+                    product.image_url = "[]";
+                }
+            });
+
             res.json(results);
             connection.end();
         });
