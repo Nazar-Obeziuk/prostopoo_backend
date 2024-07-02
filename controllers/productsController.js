@@ -222,63 +222,62 @@ exports.createProduct = async (req, res) => {
     });
 };
 
-
 exports.updateProduct = async (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { id } = req.params;
     const { name_ua, name_en, description_ua, description_en, base_price, article } = req.body;
 
-    connection.connect(async err => {
-        if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            return res.status(500).send('Database connection error');
-        }
+    try {
+        connection.connect();
 
-        let newImageUrl = null;
-        let currentImageUrls = [];
-
-        try {
-            // Retrieve current image URLs
-            const getImageQuery = 'SELECT image_url FROM products WHERE id = ?';
-            const [results] = await new Promise((resolve, reject) => {
-                connection.query(getImageQuery, [id], (err, results) => {
-                    if (err) reject(err);
-                    else resolve(results);
-                });
+        // Retrieve current image URLs
+        const getImageQuery = 'SELECT image_url FROM products WHERE id = ?';
+        const [results] = await new Promise((resolve, reject) => {
+            connection.query(getImageQuery, [id], (err, results) => {
+                if (err) reject(err);
+                else resolve(results);
             });
+        });
 
-            if (results.length > 0 && results[0].image_url) {
-                currentImageUrls = JSON.parse(results[0].image_url);
+        let currentImageUrls = results.length > 0 && results[0].image_url ? JSON.parse(results[0].image_url) : [];
+
+        if (req.file) {
+            // Delete current images from Firebase
+            for (const url of currentImageUrls) {
+                const fileName = url.split('/').pop();
+                await bucket.file(`products/${fileName}`).delete();
             }
 
-            if (req.file) {
-                // Delete current images from Firebase
-                for (const url of currentImageUrls) {
-                    const fileName = url.split('/').pop();
-                    await bucket.file(`products/${fileName}`).delete();
-                }
+            // Upload new image
+            const uploadedImageUrl = await uploadImageToFirebase(req.file);
+            const newImageUrl = JSON.stringify([uploadedImageUrl]);  // Store URL as array
 
-                // Upload new image
-                const uploadedImageUrl = await uploadImageToFirebase(req.file);
-                newImageUrl = JSON.stringify([uploadedImageUrl]);  // Store URL as array
-            }
-
-            const sqlQuery = 'UPDATE products SET name_ua = ?, name_en = ?, description_ua = ?, description_en = ?, base_price = ?, image_url = IFNULL(?, image_url), article = ? WHERE id = ?';
+            // Update the product with the new image URL
+            const sqlQuery = 'UPDATE products SET name_ua = ?, name_en = ?, description_ua = ?, description_en = ?, base_price = ?, image_url = ?, article = ? WHERE id = ?';
             await new Promise((resolve, reject) => {
                 connection.query(sqlQuery, [name_ua, name_en, description_ua, description_en, base_price, newImageUrl, article, id], (err, results) => {
                     if (err) reject(err);
                     else resolve(results);
                 });
             });
-
-            res.json({ message: 'Продукт успішно оновлено' });
-        } catch (err) {
-            console.error('Error updating product:', err);
-            return res.status(500).send('Server error');
-        } finally {
-            connection.end();
+        } else {
+            // Update the product without changing the image URL
+            const sqlQuery = 'UPDATE products SET name_ua = ?, name_en = ?, description_ua = ?, description_en = ?, base_price = ?, article = ? WHERE id = ?';
+            await new Promise((resolve, reject) => {
+                connection.query(sqlQuery, [name_ua, name_en, description_ua, description_en, base_price, article, id], (err, results) => {
+                    if (err) reject(err);
+                    else resolve(results);
+                });
+            });
         }
-    });
+
+        res.json({ message: 'Продукт успішно оновлено' });
+    } catch (err) {
+        console.error('Error updating product:', err);
+        res.status(500).send('Server error');
+    } finally {
+        connection.end();
+    }
 };
 
 
