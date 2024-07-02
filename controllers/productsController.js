@@ -7,11 +7,11 @@ const os = require('os');
 const fs = require('fs');
 const bucket = require('../config/firebaseConfig');
 
-async function uploadImageToFirebase(file, existingFilePath = null) {
+async function uploadImageToFirebase(file, existingFileName = null) {
     const tempFilePath = path.join(os.tmpdir(), file.originalname);
     fs.writeFileSync(tempFilePath, file.buffer);
 
-    const uniqueFilename = existingFilePath ? existingFilePath.split('/').pop() : `${uuidv4()}-${file.originalname}`;
+    const uniqueFilename = existingFileName ? existingFileName : `${uuidv4()}-${file.originalname}`;
     const destinationPath = `products/${uniqueFilename}`;
 
     await bucket.upload(tempFilePath, {
@@ -29,6 +29,7 @@ async function uploadImageToFirebase(file, existingFilePath = null) {
     const url = `https://storage.googleapis.com/${bucket.name}/${destinationPath}`;
     return url;
 }
+
 
 
 
@@ -221,7 +222,6 @@ exports.createProduct = async (req, res) => {
         });
     });
 };
-
 exports.updateProduct = async (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { id } = req.params;
@@ -240,17 +240,15 @@ exports.updateProduct = async (req, res) => {
         });
 
         let currentImageUrls = results.length > 0 && results[0].image_url ? JSON.parse(results[0].image_url) : [];
+        console.log('Current Image URLs:', currentImageUrls);
 
         if (req.file) {
-            // Delete current images from Firebase
-            for (const url of currentImageUrls) {
-                const fileName = url.split('/').pop();
-                await bucket.file(`products/${fileName}`).delete();
-            }
-
-            // Upload new image
-            const uploadedImageUrl = await uploadImageToFirebase(req.file);
+            console.log('New image file provided');
+            // Overwrite existing image if it exists
+            const existingFileName = currentImageUrls.length > 0 ? currentImageUrls[0].split('/').pop() : null;
+            const uploadedImageUrl = await uploadImageToFirebase(req.file, existingFileName);
             const newImageUrl = JSON.stringify([uploadedImageUrl]);  // Store URL as array
+            console.log('New Image URL:', newImageUrl);
 
             // Update the product with the new image URL
             const sqlQuery = 'UPDATE products SET name_ua = ?, name_en = ?, description_ua = ?, description_en = ?, base_price = ?, image_url = ?, article = ? WHERE id = ?';
@@ -279,6 +277,7 @@ exports.updateProduct = async (req, res) => {
         connection.end();
     }
 };
+
 
 
 exports.deleteProduct = (req, res) => {
