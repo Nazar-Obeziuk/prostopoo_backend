@@ -34,8 +34,6 @@ const reviewsRoutes = require('./routes/reviewsRoutes');
 const storageRoutes = require('./routes/storageRoutes');
 const variationRoutes = require('./routes/variationsRoutes');
 
-app.use('/orthopedic-needs', orthopedicNeedsRoutes);
-app.use('/orthopedic-reason', orthopedicReasonsRoutes);
 app.use('/products', productsRoutes);
 app.use('/auth', authRoutes);
 app.use('/workers', workersRoutes);
