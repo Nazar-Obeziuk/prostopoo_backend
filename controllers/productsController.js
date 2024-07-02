@@ -221,6 +221,8 @@ exports.createProduct = async (req, res) => {
         });
     });
 };
+
+
 exports.updateProduct = async (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { id } = req.params;
@@ -250,9 +252,14 @@ exports.updateProduct = async (req, res) => {
             }
 
             if (req.file) {
-                // Upload new image (replace existing if present)
-                const existingFilePath = currentImageUrls.length > 0 ? currentImageUrls[0] : null;
-                const uploadedImageUrl = await uploadImageToFirebase(req.file, existingFilePath);
+                // Delete current images from Firebase
+                for (const url of currentImageUrls) {
+                    const fileName = url.split('/').pop();
+                    await bucket.file(`products/${fileName}`).delete();
+                }
+
+                // Upload new image
+                const uploadedImageUrl = await uploadImageToFirebase(req.file);
                 newImageUrl = JSON.stringify([uploadedImageUrl]);  // Store URL as array
             }
 
