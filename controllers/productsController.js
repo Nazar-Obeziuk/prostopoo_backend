@@ -220,12 +220,13 @@ exports.createProduct = async (req, res) => {
         });
     });
 };
+
 exports.updateProduct = async (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { id } = req.params;
     const { name_ua, name_en, description_ua, description_en, base_price, article } = req.body;
 
-    connection.connect(err => {
+    connection.connect(async err => {
         if (err) {
             console.error('Error connecting to database: ' + err.stack);
             return res.status(500).send('Database connection error');
@@ -234,48 +235,39 @@ exports.updateProduct = async (req, res) => {
         let imageUrl = null;
         let currentImageUrls = [];
 
-        // Retrieve current image URLs
-        const getImageQuery = 'SELECT image_url FROM products WHERE id = ?';
-        connection.query(getImageQuery, [id], async (err, results) => {
-            if (err) {
-                console.error('Error retrieving current images:', err.message);
-                connection.end();
-                return res.status(500).send('Server error');
-            }
-
+        try {
+            // Retrieve current image URLs
+            const getImageQuery = 'SELECT image_url FROM products WHERE id = ?';
+            const [results] = await connection.query(getImageQuery, [id]);
             if (results.length > 0 && results[0].image_url) {
                 currentImageUrls = JSON.parse(results[0].image_url);
             }
 
             if (req.file) {
-                try {
-                    // Delete current images from Firebase
-                    for (const url of currentImageUrls) {
-                        const fileName = url.split('/').pop();
-                        await bucket.file(`products/${fileName}`).delete();
-                    }
-
-                    // Upload new image
-                    const uploadedImageUrl = await uploadImageToFirebase(req.file);
-                    imageUrl = JSON.stringify([uploadedImageUrl]);  // Store URL as array
-                } catch (err) {
-                    console.error('Error uploading image:', err);
-                    return res.status(500).send('Error uploading image');
+                // Delete current images from Firebase
+                for (const url of currentImageUrls) {
+                    const fileName = url.split('/').pop();
+                    await bucket.file(`products/${fileName}`).delete();
                 }
+
+                // Upload new image
+                const uploadedImageUrl = await uploadImageToFirebase(req.file);
+                imageUrl = JSON.stringify([uploadedImageUrl]);  // Store URL as array
             }
 
             const sqlQuery = 'UPDATE products SET name_ua = ?, name_en = ?, description_ua = ?, description_en = ?, base_price = ?, image_url = IFNULL(?, image_url), article = ? WHERE id = ?';
-            connection.query(sqlQuery, [name_ua, name_en, description_ua, description_en, base_price, imageUrl, article, id], (err, results) => {
-                if (err) {
-                    console.error('Error executing query:', err.message);
-                    return res.status(500).send('Server error');
-                }
-                res.json({ message: 'Продукт успішно оновлено' });
-                connection.end();
-            });
-        });
+            await connection.query(sqlQuery, [name_ua, name_en, description_ua, description_en, base_price, imageUrl, article, id]);
+
+            res.json({ message: 'Продукт успішно оновлено' });
+        } catch (err) {
+            console.error('Error updating product:', err);
+            return res.status(500).send('Server error');
+        } finally {
+            connection.end();
+        }
     });
 };
+
 exports.deleteProduct = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { id } = req.params;
