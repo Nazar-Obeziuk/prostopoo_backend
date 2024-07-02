@@ -20,5 +20,5 @@ router.put('/:id', authenticateToken, authorizeAdmin, upload.fields([
 ]), workersController.updateWorker);
 
 router.delete('/:id', authenticateToken, authorizeAdmin, workersController.deleteWorker);
-
+// r
 module.exports = router;
