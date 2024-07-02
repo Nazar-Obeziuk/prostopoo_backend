@@ -220,22 +220,10 @@ exports.createProduct = async (req, res) => {
         });
     });
 };
-
 exports.updateProduct = async (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { id } = req.params;
     const { name_ua, name_en, description_ua, description_en, base_price, article } = req.body;
-
-    let imageUrl = null;
-    if (req.file) {
-        try {
-            const uploadedImageUrl = await uploadImageToFirebase(req.file);
-            imageUrl = JSON.stringify([uploadedImageUrl]);  // Зберігаємо URL як масив
-        } catch (err) {
-            console.error('Error uploading image:', err);
-            return res.status(500).send('Error uploading image');
-        }
-    }
 
     connection.connect(err => {
         if (err) {
@@ -243,19 +231,51 @@ exports.updateProduct = async (req, res) => {
             return res.status(500).send('Database connection error');
         }
 
-        const sqlQuery = 'UPDATE products SET name_ua = ?, name_en = ?, description_ua = ?, description_en = ?, base_price = ?, image_url = IFNULL(?, image_url), article = ? WHERE id = ?';
-        connection.query(sqlQuery, [name_ua, name_en, description_ua, description_en, base_price, imageUrl, article, id], (err, results) => {
+        let imageUrl = null;
+        let currentImageUrls = [];
+
+        // Retrieve current image URLs
+        const getImageQuery = 'SELECT image_url FROM products WHERE id = ?';
+        connection.query(getImageQuery, [id], async (err, results) => {
             if (err) {
-                console.error('Error executing query:', err.message);
+                console.error('Error retrieving current images:', err.message);
+                connection.end();
                 return res.status(500).send('Server error');
             }
-            res.json({ message: 'Продукт успішно оновлено' });
-            connection.end();
+
+            if (results.length > 0 && results[0].image_url) {
+                currentImageUrls = JSON.parse(results[0].image_url);
+            }
+
+            if (req.file) {
+                try {
+                    // Delete current images from Firebase
+                    for (const url of currentImageUrls) {
+                        const fileName = url.split('/').pop();
+                        await bucket.file(`products/${fileName}`).delete();
+                    }
+
+                    // Upload new image
+                    const uploadedImageUrl = await uploadImageToFirebase(req.file);
+                    imageUrl = JSON.stringify([uploadedImageUrl]);  // Store URL as array
+                } catch (err) {
+                    console.error('Error uploading image:', err);
+                    return res.status(500).send('Error uploading image');
+                }
+            }
+
+            const sqlQuery = 'UPDATE products SET name_ua = ?, name_en = ?, description_ua = ?, description_en = ?, base_price = ?, image_url = IFNULL(?, image_url), article = ? WHERE id = ?';
+            connection.query(sqlQuery, [name_ua, name_en, description_ua, description_en, base_price, imageUrl, article, id], (err, results) => {
+                if (err) {
+                    console.error('Error executing query:', err.message);
+                    return res.status(500).send('Server error');
+                }
+                res.json({ message: 'Продукт успішно оновлено' });
+                connection.end();
+            });
         });
     });
 };
-
-
 exports.deleteProduct = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { id } = req.params;
@@ -266,31 +286,58 @@ exports.deleteProduct = (req, res) => {
             return res.status(500).send('Database connection error');
         }
 
-        // Видалити всі відгуки, пов'язані з продуктом
-        const deleteReviewsQuery = 'DELETE FROM product_reviews WHERE product_id = ?';
-        connection.query(deleteReviewsQuery, [id], (err, results) => {
+        // Retrieve current image URLs
+        const getImageQuery = 'SELECT image_url FROM products WHERE id = ?';
+        connection.query(getImageQuery, [id], async (err, results) => {
             if (err) {
-                console.error('Error deleting reviews:', err.message);
+                console.error('Error retrieving current images:', err.message);
+                connection.end();
                 return res.status(500).send('Server error');
             }
 
-            // Видалити всі варіації, пов'язані з продуктом
-            const deleteVariationsQuery = 'DELETE FROM productVariations WHERE product_id = ?';
-            connection.query(deleteVariationsQuery, [id], (err, results) => {
+            let currentImageUrls = [];
+            if (results.length > 0 && results[0].image_url) {
+                currentImageUrls = JSON.parse(results[0].image_url);
+            }
+
+            // Delete all related reviews
+            const deleteReviewsQuery = 'DELETE FROM product_reviews WHERE product_id = ?';
+            connection.query(deleteReviewsQuery, [id], (err, results) => {
                 if (err) {
-                    console.error('Error deleting variations:', err.message);
+                    console.error('Error deleting reviews:', err.message);
                     return res.status(500).send('Server error');
                 }
 
-                // Видалити сам продукт
-                const deleteProductQuery = 'DELETE FROM products WHERE id = ?';
-                connection.query(deleteProductQuery, [id], (err, results) => {
+                // Delete all related variations
+                const deleteVariationsQuery = 'DELETE FROM productVariations WHERE product_id = ?';
+                connection.query(deleteVariationsQuery, [id], async (err, results) => {
                     if (err) {
-                        console.error('Error executing query:', err.message);
+                        console.error('Error deleting variations:', err.message);
                         return res.status(500).send('Server error');
                     }
-                    res.json({ message: 'Продукт успішно видалено' });
-                    connection.end();
+
+                    // Delete the product
+                    const deleteProductQuery = 'DELETE FROM products WHERE id = ?';
+                    connection.query(deleteProductQuery, [id], async (err, results) => {
+                        if (err) {
+                            console.error('Error executing query:', err.message);
+                            return res.status(500).send('Server error');
+                        }
+
+                        // Delete images from Firebase
+                        try {
+                            for (const url of currentImageUrls) {
+                                const fileName = url.split('/').pop();
+                                await bucket.file(`products/${fileName}`).delete();
+                            }
+                        } catch (err) {
+                            console.error('Error deleting images from Firebase:', err);
+                            return res.status(500).send('Error deleting images');
+                        }
+
+                        res.json({ message: 'Продукт успішно видалено' });
+                        connection.end();
+                    });
                 });
             });
         });
