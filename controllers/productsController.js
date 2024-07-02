@@ -220,7 +220,6 @@ exports.createProduct = async (req, res) => {
         });
     });
 };
-
 exports.updateProduct = async (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { id } = req.params;
@@ -232,16 +231,19 @@ exports.updateProduct = async (req, res) => {
             return res.status(500).send('Database connection error');
         }
 
-        let imageUrl = null;
-        let currentImageUrls = [];
+        let newImageUrl = null;
 
         try {
             // Retrieve current image URLs
             const getImageQuery = 'SELECT image_url FROM products WHERE id = ?';
-            const [results] = await connection.query(getImageQuery, [id]);
-            if (results.length > 0 && results[0].image_url) {
-                currentImageUrls = JSON.parse(results[0].image_url);
-            }
+            const [results] = await new Promise((resolve, reject) => {
+                connection.query(getImageQuery, [id], (err, results) => {
+                    if (err) reject(err);
+                    else resolve(results);
+                });
+            });
+
+            let currentImageUrls = results.length > 0 && results[0].image_url ? JSON.parse(results[0].image_url) : [];
 
             if (req.file) {
                 // Delete current images from Firebase
@@ -252,11 +254,16 @@ exports.updateProduct = async (req, res) => {
 
                 // Upload new image
                 const uploadedImageUrl = await uploadImageToFirebase(req.file);
-                imageUrl = JSON.stringify([uploadedImageUrl]);  // Store URL as array
+                newImageUrl = JSON.stringify([uploadedImageUrl]);  // Store URL as array
             }
 
             const sqlQuery = 'UPDATE products SET name_ua = ?, name_en = ?, description_ua = ?, description_en = ?, base_price = ?, image_url = IFNULL(?, image_url), article = ? WHERE id = ?';
-            await connection.query(sqlQuery, [name_ua, name_en, description_ua, description_en, base_price, imageUrl, article, id]);
+            await new Promise((resolve, reject) => {
+                connection.query(sqlQuery, [name_ua, name_en, description_ua, description_en, base_price, newImageUrl, article, id], (err, results) => {
+                    if (err) reject(err);
+                    else resolve(results);
+                });
+            });
 
             res.json({ message: 'Продукт успішно оновлено' });
         } catch (err) {
