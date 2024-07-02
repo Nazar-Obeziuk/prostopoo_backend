@@ -7,14 +7,15 @@ const os = require('os');
 const fs = require('fs');
 const bucket = require('../config/firebaseConfig');
 
-
-async function uploadImageToFirebase(file) {
+async function uploadImageToFirebase(file, existingFilePath = null) {
     const tempFilePath = path.join(os.tmpdir(), file.originalname);
     fs.writeFileSync(tempFilePath, file.buffer);
 
-    const uniqueFilename = `${uuidv4()}-${file.originalname}`;
+    const uniqueFilename = existingFilePath ? existingFilePath.split('/').pop() : `${uuidv4()}-${file.originalname}`;
+    const destinationPath = `products/${uniqueFilename}`;
+
     await bucket.upload(tempFilePath, {
-        destination: `products/${uniqueFilename}`,
+        destination: destinationPath,
         metadata: {
             contentType: file.mimetype,
         },
@@ -22,10 +23,10 @@ async function uploadImageToFirebase(file) {
 
     fs.unlinkSync(tempFilePath);
 
-    const fileRef = bucket.file(`products/${uniqueFilename}`);
+    const fileRef = bucket.file(destinationPath);
     await fileRef.makePublic();
 
-    const url = `https://storage.googleapis.com/${bucket.name}/products/${uniqueFilename}`;
+    const url = `https://storage.googleapis.com/${bucket.name}/${destinationPath}`;
     return url;
 }
 
@@ -232,6 +233,7 @@ exports.updateProduct = async (req, res) => {
         }
 
         let newImageUrl = null;
+        let currentImageUrls = [];
 
         try {
             // Retrieve current image URLs
@@ -243,17 +245,14 @@ exports.updateProduct = async (req, res) => {
                 });
             });
 
-            let currentImageUrls = results.length > 0 && results[0].image_url ? JSON.parse(results[0].image_url) : [];
+            if (results.length > 0 && results[0].image_url) {
+                currentImageUrls = JSON.parse(results[0].image_url);
+            }
 
             if (req.file) {
-                // Delete current images from Firebase
-                for (const url of currentImageUrls) {
-                    const fileName = url.split('/').pop();
-                    await bucket.file(`products/${fileName}`).delete();
-                }
-
-                // Upload new image
-                const uploadedImageUrl = await uploadImageToFirebase(req.file);
+                // Upload new image (replace existing if present)
+                const existingFilePath = currentImageUrls.length > 0 ? currentImageUrls[0] : null;
+                const uploadedImageUrl = await uploadImageToFirebase(req.file, existingFilePath);
                 newImageUrl = JSON.stringify([uploadedImageUrl]);  // Store URL as array
             }
 
@@ -274,6 +273,7 @@ exports.updateProduct = async (req, res) => {
         }
     });
 };
+
 
 exports.deleteProduct = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
