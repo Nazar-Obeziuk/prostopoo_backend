@@ -126,7 +126,6 @@ app.delete('/experts/:id', (req, res) => {
     });
 });
 
-// CRUD operations for Orthopedic Insoles
 app.get('/home/catalog/orthopedic-insoles', (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     connection.connect(err => {
@@ -210,9 +209,6 @@ app.delete('/home/catalog/orthopedic-insoles/:id', (req, res) => {
     });
 });
 
-// Similarly, you can add the CRUD operations for the other routes like individual orthopedic insoles, children orthopedic insoles, etc.
-
-// CRUD operations for Individual Orthopedic Insoles
 app.get('/home/catalog/individual-orthopedic-insoles', (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     connection.connect(err => {
@@ -465,7 +461,6 @@ app.delete('/home/catalog/orthopedic-insoles/universal-orthopedic-insoles/:id', 
     });
 });
 
-// CRUD operations for Diabetic Orthopedic Insoles
 app.get('/home/catalog/orthopedic-insoles/diabetic-orthopedic-insoles', (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     connection.connect(err => {
@@ -548,7 +543,8 @@ app.delete('/home/catalog/orthopedic-insoles/diabetic-orthopedic-insoles/:id', (
         });
     });
 });
-// CRUD operations for Sport Orthopedic Insoles
+
+
 app.get('/home/catalog/orthopedic-insoles/sport-orthopedic-insoles', (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     connection.connect(err => {
@@ -631,8 +627,6 @@ app.delete('/home/catalog/orthopedic-insoles/sport-orthopedic-insoles/:id', (req
         });
     });
 });
-
-
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
