@@ -220,7 +220,6 @@ exports.createProduct = async (req, res) => {
         });
     });
 };
-
 exports.updateProduct = async (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { id } = req.params;
@@ -233,7 +232,6 @@ exports.updateProduct = async (req, res) => {
         }
 
         let newImageUrl = null;
-        let currentImageUrls = [];
 
         try {
             // Retrieve current image URLs
@@ -245,11 +243,15 @@ exports.updateProduct = async (req, res) => {
                 });
             });
 
-            if (results.length > 0 && results[0].image_url) {
-                currentImageUrls = JSON.parse(results[0].image_url);
-            }
+            let currentImageUrls = results.length > 0 && results[0].image_url ? JSON.parse(results[0].image_url) : [];
 
             if (req.file) {
+                // Delete current images from Firebase
+                for (const url of currentImageUrls) {
+                    const fileName = url.split('/').pop();
+                    await bucket.file(`products/${fileName}`).delete();
+                }
+
                 // Upload new image
                 const uploadedImageUrl = await uploadImageToFirebase(req.file);
                 newImageUrl = JSON.stringify([uploadedImageUrl]);  // Store URL as array
@@ -263,14 +265,6 @@ exports.updateProduct = async (req, res) => {
                 });
             });
 
-            // Delete current images from Firebase after updating the database
-            if (req.file) {
-                for (const url of currentImageUrls) {
-                    const fileName = url.split('/').pop();
-                    await bucket.file(`products/${fileName}`).delete();
-                }
-            }
-
             res.json({ message: 'Продукт успішно оновлено' });
         } catch (err) {
             console.error('Error updating product:', err);
@@ -280,7 +274,6 @@ exports.updateProduct = async (req, res) => {
         }
     });
 };
-
 
 exports.deleteProduct = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
