@@ -25,8 +25,6 @@ app.use(express.json());
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // Routes
-const orthopedicNeedsRoutes = require('./routes/orthopedicNeedsRoutes');
-const orthopedicReasonsRoutes = require('./routes/orthopedicReasonsRoutes');
 const productsRoutes = require('./routes/productsRoutes');
 const authRoutes = require('./routes/authRoutes');
 const workersRoutes = require('./routes/workersRoutes');
