@@ -12,8 +12,14 @@ const PORT = process.env.PORT || 4001;
 
 
 app.use(cors());
-app.use(bodyParser.json());
 const upload = multer();
+// For parsing application/json
+app.use(bodyParser.json());
+
+// For parsing application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(upload.none());
 
 
 app.get('/', (req, res) => {

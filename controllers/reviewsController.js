@@ -74,7 +74,7 @@ exports.getReview = (req, res) => {
     });
 };
 
-exports.createGeneralReview = (req, res) => {
+exports.createGeneralReview = async (req, res) => {
     const connection = mysql.createConnection(dbConfig);
 
     connection.connect((err) => {
@@ -85,6 +85,9 @@ exports.createGeneralReview = (req, res) => {
         }
 
         const { stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en } = req.body;
+
+
+        console.log(req.body)
 
         const sqlQuery = `
             INSERT INTO reviews (stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en) 
