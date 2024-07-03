@@ -1,6 +1,7 @@
 const mysql = require('mysql');
 const dbConfig = require('../config/dbConfig');
 
+// Get all general reviews (those without a product_id)
 exports.getGeneralReviews = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
 
@@ -48,6 +49,30 @@ exports.getReviewsByProductId = (req, res) => {
     });
 };
 
+exports.getReview = (req, res) => {
+    const connection = mysql.createConnection(dbConfig);
+    const { id } = req.params;
+
+    connection.connect((err) => {
+        if (err) {
+            console.error('Error connecting to database: ' + err.stack);
+            return res.status(500).send('Database connection error');
+        }
+
+        const sqlQuery = 'SELECT * FROM reviews WHERE id = ?';
+        connection.query(sqlQuery, [id], (err, results) => {
+            if (err) {
+                console.error('Error executing query:', err.message);
+                return res.status(500).send('Server error');
+            }
+            if (results.length === 0) {
+                return res.status(404).send('No entry found with the given ID');
+            }
+            res.json(results[0]);
+            connection.end();
+        });
+    });
+};
 
 exports.createGeneralReview = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
@@ -101,6 +126,64 @@ exports.createProductReview = (req, res) => {
                 res.status(500).send('Server error');
             } else {
                 res.status(201).send({ id: results.insertId, product_id, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en });
+            }
+            connection.end();
+        });
+    });
+};
+
+exports.updateReview = (req, res) => {
+    const connection = mysql.createConnection(dbConfig);
+    const { id } = req.params;
+    const { product_id, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en } = req.body;
+
+    connection.connect((err) => {
+        if (err) {
+            console.error('Error connecting to database: ' + err.stack);
+            res.status(500).send('Database connection error');
+            return;
+        }
+
+        const sqlQuery = `
+            UPDATE reviews 
+            SET product_id = ?, stars = ?, name_ua = ?, name_en = ?, description_ua = ?, description_en = ?, pluses_ua = ?, pluses_en = ?, minuses_ua = ?, minuses_en = ?
+            WHERE id = ?
+        `;
+
+        connection.query(sqlQuery, [product_id, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en, id], (err, results) => {
+            if (err) {
+                console.error('Error executing query:', err.message);
+                res.status(500).send('Server error');
+            } else if (results.affectedRows === 0) {
+                res.status(404).send('No entry found with the given ID');
+            } else {
+                res.status(200).send(`Entry with ID ${id} updated successfully`);
+            }
+            connection.end();
+        });
+    });
+};
+
+exports.deleteReview = (req, res) => {
+    const connection = mysql.createConnection(dbConfig);
+    const { id } = req.params;
+
+    connection.connect((err) => {
+        if (err) {
+            console.error('Error connecting to database: ' + err.stack);
+            res.status(500).send('Database connection error');
+            return;
+        }
+
+        const sqlQuery = 'DELETE FROM reviews WHERE id = ?';
+        connection.query(sqlQuery, [id], (err, results) => {
+            if (err) {
+                console.error('Error executing query:', err.message);
+                res.status(500).send('Server error');
+            } else if (results.affectedRows === 0) {
+                res.status(404).send('No entry found with the given ID');
+            } else {
+                res.status(200).send(`Entry with ID ${id} deleted successfully`);
             }
             connection.end();
         });
