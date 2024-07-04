@@ -5,8 +5,8 @@ const { authenticateToken, authorizeAdmin } = require('../middleware/authMiddlew
 const upload = require('../middleware/uploadMiddleware');
 
 router.get('/:productId', variationsController.getVariations);
-router.post('/:productId', authenticateToken, authorizeAdmin, upload.single('image'), variationsController.createVariation);
-router.put('/:id', authenticateToken, authorizeAdmin, upload.single('image'), variationsController.updateVariation);
+router.post('/:productId', authenticateToken, authorizeAdmin, upload.array('image'), variationsController.createVariation);
+router.put('/:id', authenticateToken, authorizeAdmin, upload.array('image'), variationsController.updateVariation);
 router.delete('/:id', authenticateToken, authorizeAdmin, variationsController.deleteVariation);
 
 module.exports = router;

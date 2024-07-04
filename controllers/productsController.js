@@ -1,4 +1,3 @@
-
 const mysql = require('mysql');
 const dbConfig = require('../config/dbConfig');
 const { v4: uuidv4 } = require('uuid');
@@ -30,12 +29,8 @@ async function uploadImageToFirebase(file, existingFileName = null) {
     return url;
 }
 
-
-
-
 exports.getProducts = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
-    const serverUrl = `${req.protocol}://${req.get('host')}/`;
 
     connection.connect(err => {
         if (err) {
@@ -52,6 +47,7 @@ exports.getProducts = (req, res) => {
                 p.base_price AS base_price,
                 p.image_url AS image_url,
                 p.article AS article,
+                p.characteristics AS characteristics,
                 COALESCE(AVG(r.rating), 0) AS average_rating,
                 COUNT(r.id) AS reviews_count
             FROM 
@@ -72,13 +68,17 @@ exports.getProducts = (req, res) => {
 
             results.forEach(product => {
                 if (product.image_url) {
-                    let urls = product.image_url;
-                    product.image_url = JSON.parse(urls);
+                    product.image_url = JSON.parse(product.image_url);
                 } else {
-                    product.image_url = "[]";
+                    product.image_url = [];
+                }
+
+                if (product.characteristics) {
+                    product.characteristics = JSON.parse(product.characteristics);
+                } else {
+                    product.characteristics = {};
                 }
             });
-
 
             res.json(results);
             connection.end();
@@ -96,7 +96,6 @@ exports.getProduct = (req, res) => {
             return res.status(500).send('Database connection error');
         }
 
-        const serverUrl = `${req.protocol}://${req.get('host')}/`; // Динамічно визначаємо URL сервера
         const sqlQuery = `
             SELECT 
                 p.id AS product_id,
@@ -107,6 +106,7 @@ exports.getProduct = (req, res) => {
                 p.base_price AS product_base_price,
                 p.image_url AS product_image_url,
                 p.article AS product_article,
+                p.characteristics AS product_characteristics,
                 COALESCE(AVG(r.rating), 0) AS product_average_rating,
                 COUNT(r.id) AS product_reviews_count,
                 pv.variation_type,
@@ -123,14 +123,14 @@ exports.getProduct = (req, res) => {
             LEFT JOIN
                 product_reviews r ON p.id = r.product_id
             WHERE 
-                p.id = ${id}
+                p.id = ?
             GROUP BY 
                 p.id, pv.id
             ORDER BY 
                 p.id, pv.variation_type;
         `;
 
-        connection.query(sqlQuery, (err, results) => {
+        connection.query(sqlQuery, [id], (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.message);
                 res.status(500).send('Server error');
@@ -141,9 +141,6 @@ exports.getProduct = (req, res) => {
                     return;
                 }
 
-                let product_image_urls = results[0].product_image_url ? results[0].product_image_url.split(",") : [];
-                let modUrl = product_image_urls.map(el => `${el.trim()}`);
-
                 const product = {
                     product_id: results[0].product_id,
                     name_en: results[0].product_name_en,
@@ -151,11 +148,11 @@ exports.getProduct = (req, res) => {
                     description_en: results[0].product_description_en,
                     description_ua: results[0].product_description_ua,
                     base_price: results[0].product_base_price,
-                    image_url: JSON.parse(modUrl),
+                    image_url: JSON.parse(results[0].product_image_url || "[]"),
                     average_rating: results[0].product_average_rating,
                     reviews_count: results[0].product_reviews_count,
-                    reviews_count: results[0].product_reviews_count,
                     article: results[0].product_article,
+                    characteristics: JSON.parse(results[0].product_characteristics || "{}"),
                     variations: {
                         colors: [],
                         sizes: []
@@ -163,22 +160,19 @@ exports.getProduct = (req, res) => {
                 };
 
                 results.forEach(row => {
-                    let variation_image_urls = row.variation_image_url ? row.variation_image_url.split(",") : [];
-                    let modVariationUrl = variation_image_urls.map(el => `${serverUrl}${el.trim()}`);
-
                     const variation = {
                         value: row.variation_value,
                         additional_price: row.additional_price,
-                        image_url: modVariationUrl,
+                        image_url: row.variation_image_url ? row.variation_image_url.split(",").map(url => url.trim()) : [],
                         article: row.article,
                         description_en: row.variation_description_en,
                         description_ua: row.variation_description_ua
                     };
 
                     if (row.variation_type === 'color') {
-                        product.product_variations.colors.push(variation);
+                        product.variations.colors.push(variation);
                     } else if (row.variation_type === 'size') {
-                        product.product_variations.sizes.push(variation);
+                        product.variations.sizes.push(variation);
                     }
                 });
 
@@ -188,15 +182,18 @@ exports.getProduct = (req, res) => {
         });
     });
 };
+
 exports.createProduct = async (req, res) => {
     const connection = mysql.createConnection(dbConfig);
-    const { name_ua, name_en, description_ua, description_en, base_price, article } = req.body;
+    const { name_ua, name_en, description_ua, description_en, base_price, article, characteristics } = req.body;
 
-    let imageUrl = null;  // Ініціалізуємо як null
-    if (req.file) { // Використовуємо req.file замість req.files.image
+    console.log(characteristics);
+
+    let imageUrl = null;
+    if (req.file) {
         try {
             const uploadedImageUrl = await uploadImageToFirebase(req.file);
-            imageUrl = JSON.stringify([uploadedImageUrl]);  // Зберігаємо URL як масив
+            imageUrl = JSON.stringify([uploadedImageUrl]);
         } catch (err) {
             console.error('Error uploading image:', err);
             return res.status(500).send('Error uploading image');
@@ -209,8 +206,8 @@ exports.createProduct = async (req, res) => {
             return res.status(500).send('Database connection error');
         }
 
-        const sqlQuery = 'INSERT INTO products (name_ua, name_en, description_ua, description_en, base_price, image_url, article) VALUES (?, ?, ?, ?, ?, ?, ?)';
-        connection.query(sqlQuery, [name_ua, name_en, description_ua, description_en, base_price, imageUrl, article], (err, results) => {
+        const sqlQuery = 'INSERT INTO products (name_ua, name_en, description_ua, description_en, base_price, image_url, article, characteristics) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+        connection.query(sqlQuery, [name_ua, name_en, description_ua, description_en, base_price, imageUrl, article, characteristics], (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.message);
                 return res.status(500).send('Server error');
@@ -220,15 +217,15 @@ exports.createProduct = async (req, res) => {
         });
     });
 };
+
 exports.updateProduct = async (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { id } = req.params;
-    const { name_ua, name_en, description_ua, description_en, base_price, article } = req.body;
+    const { name_ua, name_en, description_ua, description_en, base_price, article, characteristics } = req.body;
 
     try {
         connection.connect();
 
-        // Retrieve current image URLs
         const getImageQuery = 'SELECT image_url FROM products WHERE id = ?';
         const [results] = await new Promise((resolve, reject) => {
             connection.query(getImageQuery, [id], (err, results) => {
@@ -242,25 +239,22 @@ exports.updateProduct = async (req, res) => {
 
         if (req.file) {
             console.log('New image file provided');
-            // Overwrite existing image if it exists
             const existingFileName = currentImageUrls.length > 0 ? currentImageUrls[0].split('/').pop() : null;
             const uploadedImageUrl = await uploadImageToFirebase(req.file, existingFileName);
-            const newImageUrl = JSON.stringify([uploadedImageUrl]);  // Store URL as array
+            const newImageUrl = JSON.stringify([uploadedImageUrl]);
             console.log('New Image URL:', newImageUrl);
 
-            // Update the product with the new image URL
-            const sqlQuery = 'UPDATE products SET name_ua = ?, name_en = ?, description_ua = ?, description_en = ?, base_price = ?, image_url = ?, article = ? WHERE id = ?';
+            const sqlQuery = 'UPDATE products SET name_ua = ?, name_en = ?, description_ua = ?, description_en = ?, base_price = ?, image_url = ?, article = ?, characteristics = ? WHERE id = ?';
             await new Promise((resolve, reject) => {
-                connection.query(sqlQuery, [name_ua, name_en, description_ua, description_en, base_price, newImageUrl, article, id], (err, results) => {
+                connection.query(sqlQuery, [name_ua, name_en, description_ua, description_en, base_price, newImageUrl, article, characteristics, id], (err, results) => {
                     if (err) reject(err);
                     else resolve(results);
                 });
             });
         } else {
-            // Update the product without changing the image URL
-            const sqlQuery = 'UPDATE products SET name_ua = ?, name_en = ?, description_ua = ?, description_en = ?, base_price = ?, article = ? WHERE id = ?';
+            const sqlQuery = 'UPDATE products SET name_ua = ?, name_en = ?, description_ua = ?, description_en = ?, base_price = ?, article = ?, characteristics = ? WHERE id = ?';
             await new Promise((resolve, reject) => {
-                connection.query(sqlQuery, [name_ua, name_en, description_ua, description_en, base_price, article, id], (err, results) => {
+                connection.query(sqlQuery, [name_ua, name_en, description_ua, description_en, base_price, article, characteristics, id], (err, results) => {
                     if (err) reject(err);
                     else resolve(results);
                 });
@@ -276,8 +270,6 @@ exports.updateProduct = async (req, res) => {
     }
 };
 
-
-
 exports.deleteProduct = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { id } = req.params;
@@ -288,7 +280,6 @@ exports.deleteProduct = (req, res) => {
             return res.status(500).send('Database connection error');
         }
 
-        // Retrieve current image URLs
         const getImageQuery = 'SELECT image_url FROM products WHERE id = ?';
         connection.query(getImageQuery, [id], async (err, results) => {
             if (err) {
@@ -302,7 +293,6 @@ exports.deleteProduct = (req, res) => {
                 currentImageUrls = JSON.parse(results[0].image_url);
             }
 
-            // Delete all related reviews
             const deleteReviewsQuery = 'DELETE FROM product_reviews WHERE product_id = ?';
             connection.query(deleteReviewsQuery, [id], (err, results) => {
                 if (err) {
@@ -310,7 +300,6 @@ exports.deleteProduct = (req, res) => {
                     return res.status(500).send('Server error');
                 }
 
-                // Delete all related variations
                 const deleteVariationsQuery = 'DELETE FROM productVariations WHERE product_id = ?';
                 connection.query(deleteVariationsQuery, [id], async (err, results) => {
                     if (err) {
@@ -318,7 +307,6 @@ exports.deleteProduct = (req, res) => {
                         return res.status(500).send('Server error');
                     }
 
-                    // Delete the product
                     const deleteProductQuery = 'DELETE FROM products WHERE id = ?';
                     connection.query(deleteProductQuery, [id], async (err, results) => {
                         if (err) {
@@ -326,7 +314,6 @@ exports.deleteProduct = (req, res) => {
                             return res.status(500).send('Server error');
                         }
 
-                        // Delete images from Firebase
                         try {
                             for (const url of currentImageUrls) {
                                 const fileName = url.split('/').pop();
@@ -345,8 +332,6 @@ exports.deleteProduct = (req, res) => {
         });
     });
 };
-
-
 
 exports.createVariation = (req, res) => {
     const connection = mysql.createConnection(dbConfig);

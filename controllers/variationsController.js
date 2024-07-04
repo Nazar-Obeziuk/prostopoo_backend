@@ -6,28 +6,30 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 
+async function uploadImagesToFirebase(files) {
+    const uploadedUrls = [];
+    for (const file of files) {
+        const tempFilePath = path.join(os.tmpdir(), file.originalname);
+        fs.writeFileSync(tempFilePath, file.buffer);
 
-async function uploadImageToFirebase(file) {
-    const tempFilePath = path.join(os.tmpdir(), file.originalname);
-    fs.writeFileSync(tempFilePath, file.buffer);
+        const uniqueFilename = `${uuidv4()}-${file.originalname}`;
+        await bucket.upload(tempFilePath, {
+            destination: `variations/${uniqueFilename}`,
+            metadata: {
+                contentType: file.mimetype,
+            },
+        });
 
-    const uniqueFilename = `${uuidv4()}-${file.originalname}`;
-    await bucket.upload(tempFilePath, {
-        destination: `variations/${uniqueFilename}`,
-        metadata: {
-            contentType: file.mimetype,
-        },
-    });
+        fs.unlinkSync(tempFilePath);
 
-    fs.unlinkSync(tempFilePath);
+        const fileRef = bucket.file(`variations/${uniqueFilename}`);
+        await fileRef.makePublic();
 
-    const fileRef = bucket.file(`variations/${uniqueFilename}`);
-    await fileRef.makePublic();
-
-    const url = `https://storage.googleapis.com/${bucket.name}/variations/${uniqueFilename}`;
-    return url;
+        const url = `https://storage.googleapis.com/${bucket.name}/variations/${uniqueFilename}`;
+        uploadedUrls.push(url);
+    }
+    return uploadedUrls;
 }
-
 
 exports.getVariations = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
@@ -46,7 +48,6 @@ exports.getVariations = (req, res) => {
                 return res.status(500).send('Server error');
             }
 
-
             results.forEach(product => {
                 if (product.image_url) {
                     let urls = product.image_url;
@@ -62,22 +63,22 @@ exports.getVariations = (req, res) => {
     });
 };
 
-
 exports.createVariation = async (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { productId } = req.params;
     const { variation_type, variation_value, additional_price, article, description_en, description_ua } = req.body;
 
-    let imageUrl = null;
-    if (req.file) {
+    let imageUrls = [];
+    if (req.files && req.files.length > 0) {
         try {
-            const uploadedImageUrl = await uploadImageToFirebase(req.file);
-            imageUrl = JSON.stringify([uploadedImageUrl]);  // Зберігаємо URL як масив
+            imageUrls = await uploadImagesToFirebase(req.files);
         } catch (err) {
-            console.error('Error uploading image:', err);
-            return res.status(500).send('Error uploading image');
+            console.error('Error uploading images:', err);
+            return res.status(500).send('Error uploading images');
         }
     }
+
+    const imageUrlJson = JSON.stringify(imageUrls);
 
     connection.connect(err => {
         if (err) {
@@ -86,7 +87,7 @@ exports.createVariation = async (req, res) => {
         }
 
         const sqlQuery = 'INSERT INTO productVariations (product_id, variation_type, variation_value, additional_price, image_url, article, description_en, description_ua) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-        connection.query(sqlQuery, [productId, variation_type, variation_value, additional_price, imageUrl, article, description_en, description_ua], (err, results) => {
+        connection.query(sqlQuery, [productId, variation_type, variation_value, additional_price, imageUrlJson, article, description_en, description_ua], (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.message);
                 return res.status(500).send('Server error');
@@ -97,24 +98,22 @@ exports.createVariation = async (req, res) => {
     });
 };
 
-
-
-
 exports.updateVariation = async (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { id } = req.params;
     const { variation_type, variation_value, additional_price, article, description_en, description_ua } = req.body;
 
-    let imageUrl = null;
-    if (req.file) {
+    let imageUrls = null;
+    if (req.files && req.files.length > 0) {
         try {
-            const uploadedImageUrl = await uploadImageToFirebase(req.file);
-            imageUrl = JSON.stringify([uploadedImageUrl]);  // Зберігаємо URL як масив
+            imageUrls = await uploadImagesToFirebase(req.files);
         } catch (err) {
-            console.error('Error uploading image:', err);
-            return res.status(500).send('Error uploading image');
+            console.error('Error uploading images:', err);
+            return res.status(500).send('Error uploading images');
         }
     }
+
+    const imageUrlJson = imageUrls ? JSON.stringify(imageUrls) : null;
 
     connection.connect(err => {
         if (err) {
@@ -123,7 +122,7 @@ exports.updateVariation = async (req, res) => {
         }
 
         const sqlQuery = 'UPDATE productVariations SET variation_type = ?, variation_value = ?, additional_price = ?, image_url = IFNULL(?, image_url), article = ?, description_en = ?, description_ua = ? WHERE id = ?';
-        connection.query(sqlQuery, [variation_type, variation_value, additional_price, imageUrl, article, description_en, description_ua, id], (err, results) => {
+        connection.query(sqlQuery, [variation_type, variation_value, additional_price, imageUrlJson, article, description_en, description_ua, id], (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.message);
                 return res.status(500).send('Server error');
@@ -150,7 +149,7 @@ exports.deleteVariation = (req, res) => {
                 console.error('Error executing query:', err.message);
                 return res.status(500).send('Server error');
             }
-            res.json({ message: 'Варіацію успішно видалено' });
+            res.json({ message: 'Варіацію успішно створено' });
             connection.end();
         });
     });
