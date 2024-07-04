@@ -68,7 +68,7 @@ exports.createVariation = async (req, res) => {
     const { productId } = req.params;
     const { variation_type, variation_value, additional_price, article, description_en, description_ua } = req.body;
 
-    let imageUrl = null;  // Ініціалізуємо як null
+    let imageUrl = null;
     if (req.file) {
         try {
             const uploadedImageUrl = await uploadImageToFirebase(req.file);

@@ -78,6 +78,13 @@ exports.getWorker = (req, res) => {
             if (results.length === 0) {
                 return res.status(404).send('Worker not found');
             }
+
+            results.forEach(worker => {
+                worker.slider_images = JSON.parse(worker.slider_images);
+                console.log(worker);
+            });
+
+
             res.json(results[0]);
             connection.end();
         });

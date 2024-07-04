@@ -121,8 +121,6 @@ exports.getProduct = (req, res) => {
             LEFT JOIN
                 productVariations pv ON p.id = pv.product_id
             LEFT JOIN
-                variations v ON pv.variation_id = v.id
-            LEFT JOIN
                 product_reviews r ON p.id = r.product_id
             WHERE 
                 p.id = ${id}
@@ -153,7 +151,7 @@ exports.getProduct = (req, res) => {
                     description_en: results[0].product_description_en,
                     description_ua: results[0].product_description_ua,
                     base_price: results[0].product_base_price,
-                    image_url: modUrl,
+                    image_url: JSON.parse(modUrl),
                     average_rating: results[0].product_average_rating,
                     reviews_count: results[0].product_reviews_count,
                     reviews_count: results[0].product_reviews_count,
