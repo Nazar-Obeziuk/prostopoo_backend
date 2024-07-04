@@ -153,26 +153,23 @@ exports.getProduct = (req, res) => {
                     reviews_count: results[0].product_reviews_count,
                     article: results[0].product_article,
                     characteristics: JSON.parse(results[0].product_characteristics || "{}"),
-                    variations: {
-                        colors: [],
-                        sizes: []
-                    }
+                    variations: {}
                 };
 
                 results.forEach(row => {
                     const variation = {
                         value: row.variation_value,
                         additional_price: row.additional_price,
-                        image_url: row.variation_image_url ? row.variation_image_url.split(",").map(url => url.trim()) : [],
+                        image_url: JSON.parse(row.variation_image_url),
                         article: row.article,
                         description_en: row.variation_description_en,
                         description_ua: row.variation_description_ua
                     };
 
-                    if (row.variation_type === 'color') {
-                        product.variations.colors.push(variation);
-                    } else if (row.variation_type === 'size') {
-                        product.variations.sizes.push(variation);
+                    if (row.variation_type === 'colors') {
+                        product.variations.colors = variation;
+                    } else if (row.variation_type === 'sizes') {
+                        product.variations.sizes = variation;
                     }
                 });
 
