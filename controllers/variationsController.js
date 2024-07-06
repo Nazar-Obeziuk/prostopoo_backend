@@ -63,6 +63,40 @@ exports.getVariations = (req, res) => {
     });
 };
 
+exports.getVariation = (req, res) => {
+    const connection = mysql.createConnection(dbConfig);
+    const { id } = req.params;
+
+    connection.connect(err => {
+        if (err) {
+            console.error('Error connecting to database: ' + err.stack);
+            return res.status(500).send('Database connection error');
+        }
+
+        const sqlQuery = 'SELECT * FROM productVariations WHERE id = ?';
+        connection.query(sqlQuery, [id], (err, results) => {
+            if (err) {
+                console.error('Error executing query:', err.message);
+                return res.status(500).send('Server error');
+            }
+
+            if (results.length > 0) {
+                const product = results[0];
+                if (product.image_url) {
+                    product.image_url = JSON.parse(product.image_url);
+                } else {
+                    product.image_url = "[]";
+                }
+                res.json(product);
+            } else {
+                res.status(404).send('Variation not found');
+            }
+
+            connection.end();
+        });
+    });
+};
+
 exports.createVariation = async (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { productId } = req.params;
