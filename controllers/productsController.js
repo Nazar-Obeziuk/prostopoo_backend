@@ -153,7 +153,10 @@ exports.getProduct = (req, res) => {
                     reviews_count: results[0].product_reviews_count,
                     article: results[0].product_article,
                     characteristics: JSON.parse(results[0].product_characteristics || "{}"),
-                    variations: {}
+                    variations: {
+                        colors: [],
+                        sizes: []
+                    }
                 };
 
                 results.forEach(row => {
