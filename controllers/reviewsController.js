@@ -153,7 +153,7 @@ exports.updateReview = (req, res) => {
             WHERE id = ?
         `;
 
-        connection.query(sqlQuery, [, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en, id], (err, results) => {
+        connection.query(sqlQuery, [stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en, id], (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.message);
                 res.status(500).send('Server error');
