@@ -48,7 +48,7 @@ exports.getProducts = (req, res) => {
                 p.image_url AS image_url,
                 p.article AS article,
                 p.characteristics AS characteristics,
-                COALESCE(AVG(r.rating), 0) AS average_rating,
+                COALESCE(AVG(r.stars), 0) AS average_rating,
                 COUNT(r.id) AS reviews_count
             FROM 
                 products p
@@ -107,7 +107,7 @@ exports.getProduct = (req, res) => {
                 p.image_url AS product_image_url,
                 p.article AS product_article,
                 p.characteristics AS product_characteristics,
-                COALESCE(AVG(r.rating), 0) AS product_average_rating,
+                COALESCE(AVG(r.stars), 0) AS product_average_rating,
                 COUNT(r.id) AS product_reviews_count,
                 pv.variation_type,
                 pv.variation_value,
@@ -121,7 +121,7 @@ exports.getProduct = (req, res) => {
             LEFT JOIN
                 productVariations pv ON p.id = pv.product_id
             LEFT JOIN
-                product_reviews r ON p.id = r.product_id
+                reviews r ON p.id = r.product_id
             WHERE 
                 p.id = ?
             GROUP BY 
