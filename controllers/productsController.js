@@ -53,7 +53,7 @@ exports.getProducts = (req, res) => {
             FROM 
                 products p
             LEFT JOIN
-                product_reviews r ON p.id = r.product_id
+                reviews r ON p.id = r.product_id
             GROUP BY 
                 p.id
             ORDER BY 
