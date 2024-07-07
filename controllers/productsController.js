@@ -166,10 +166,10 @@ exports.getProduct = (req, res) => {
                         description_ua: row.variation_description_ua
                     };
 
-                    if (row.variation_type === 'colors') {
-                        product.variations.colors = variation;
+                    if (row.variation_type === 'coverage') {
+                        product.variations.colors.push(variation);
                     } else if (row.variation_type === 'sizes') {
-                        product.variations.sizes = variation;
+                        product.variations.sizes.push(variation);
                     }
                 });
 
