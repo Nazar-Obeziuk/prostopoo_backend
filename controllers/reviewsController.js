@@ -138,7 +138,7 @@ exports.createProductReview = (req, res) => {
 exports.updateReview = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { id } = req.params;
-    const { product_id, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en } = req.body;
+    const { stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en } = req.body;
 
     connection.connect((err) => {
         if (err) {
@@ -149,11 +149,11 @@ exports.updateReview = (req, res) => {
 
         const sqlQuery = `
             UPDATE reviews 
-            SET product_id = ?, stars = ?, name_ua = ?, name_en = ?, description_ua = ?, description_en = ?, pluses_ua = ?, pluses_en = ?, minuses_ua = ?, minuses_en = ?
+            SET  stars = ?, name_ua = ?, name_en = ?, description_ua = ?, description_en = ?, pluses_ua = ?, pluses_en = ?, minuses_ua = ?, minuses_en = ?
             WHERE id = ?
         `;
 
-        connection.query(sqlQuery, [product_id, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en, id], (err, results) => {
+        connection.query(sqlQuery, [, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en, id], (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.message);
                 res.status(500).send('Server error');
