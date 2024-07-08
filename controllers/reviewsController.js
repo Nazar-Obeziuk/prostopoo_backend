@@ -6,16 +6,16 @@ exports.getGeneralReviews = (req, res) => {
 
     connection.connect((err) => {
         if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            res.status(500).send('Database connection error');
+            console.error('Помилка підключення до бази даних: ' + err.stack);
+            res.status(500).send('Помилка підключення до бази даних');
             return;
         }
 
         const sqlQuery = 'SELECT * FROM reviews WHERE category = ?';
         connection.query(sqlQuery, ['General'], (err, results) => {
             if (err) {
-                console.error('Error executing query:', err.message);
-                res.status(500).send('Server error');
+                console.error('Помилка виконання запиту: ' + err.message);
+                res.status(500).send('Помилка сервера');
             } else {
                 res.json(results);
             }
@@ -30,16 +30,16 @@ exports.getReviewsByProductId = (req, res) => {
 
     connection.connect((err) => {
         if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            res.status(500).send('Database connection error');
+            console.error('Помилка підключення до бази даних: ' + err.stack);
+            res.status(500).send('Помилка підключення до бази даних');
             return;
         }
 
         const sqlQuery = 'SELECT * FROM reviews WHERE product_id = ? AND category = ?';
         connection.query(sqlQuery, [product_id, 'product'], (err, results) => {
             if (err) {
-                console.error('Error executing query:', err.message);
-                res.status(500).send('Server error');
+                console.error('Помилка виконання запиту: ' + err.message);
+                res.status(500).send('Помилка сервера');
             } else {
                 res.json(results);
             }
@@ -54,18 +54,18 @@ exports.getReview = (req, res) => {
 
     connection.connect((err) => {
         if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            return res.status(500).send('Database connection error');
+            console.error('Помилка підключення до бази даних: ' + err.stack);
+            return res.status(500).send('Помилка підключення до бази даних');
         }
 
         const sqlQuery = 'SELECT * FROM reviews WHERE id = ?';
         connection.query(sqlQuery, [id], (err, results) => {
             if (err) {
-                console.error('Error executing query:', err.message);
-                return res.status(500).send('Server error');
+                console.error('Помилка виконання запиту: ' + err.message);
+                return res.status(500).send('Помилка сервера');
             }
             if (results.length === 0) {
-                return res.status(404).send('No entry found with the given ID');
+                return res.status(404).send('Запис з вказаним ID не знайдено');
             }
             res.json(results[0]);
             connection.end();
@@ -78,8 +78,8 @@ exports.createGeneralReview = async (req, res) => {
 
     connection.connect((err) => {
         if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            res.status(500).send('Database connection error');
+            console.error('Помилка підключення до бази даних: ' + err.stack);
+            res.status(500).send('Помилка підключення до бази даних');
             return;
         }
 
@@ -92,8 +92,8 @@ exports.createGeneralReview = async (req, res) => {
 
         connection.query(sqlQuery, [stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en, 'General'], (err, results) => {
             if (err) {
-                console.error('Error executing query:', err.message);
-                res.status(500).send('Server error');
+                console.error('Помилка виконання запиту: ' + err.message);
+                res.status(500).send('Помилка сервера');
             } else {
                 res.status(201).send({ id: results.insertId, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en });
             }
@@ -109,8 +109,8 @@ exports.createProductReview = (req, res) => {
 
     connection.connect((err) => {
         if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            res.status(500).send('Database connection error');
+            console.error('Помилка підключення до бази даних: ' + err.stack);
+            res.status(500).send('Помилка підключення до бази даних');
             return;
         }
 
@@ -121,8 +121,8 @@ exports.createProductReview = (req, res) => {
 
         connection.query(sqlQuery, [product_id, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en, 'product'], (err, results) => {
             if (err) {
-                console.error('Error executing query:', err.message);
-                res.status(500).send('Server error');
+                console.error('Помилка виконання запиту: ' + err.message);
+                res.status(500).send('Помилка сервера');
             } else {
                 res.status(201).send({ id: results.insertId, product_id, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en });
             }
@@ -136,18 +136,18 @@ exports.getCertificateReviews = (req, res) => {
 
     connection.connect((err) => {
         if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            return res.status(500).send('Database connection error');
+            console.error('Помилка підключення до бази даних: ' + err.stack);
+            return res.status(500).send('Помилка підключення до бази даних');
         }
 
         const sqlQuery = 'SELECT * FROM reviews WHERE category = ?';
         connection.query(sqlQuery, ['certificate'], (err, results) => {
             if (err) {
-                console.error('Error executing query:', err.message);
-                return res.status(500).send('Server error');
+                console.error('Помилка виконання запиту: ' + err.message);
+                return res.status(500).send('Помилка сервера');
             }
             if (results.length === 0) {
-                return res.status(404).send('No reviews found for the given category');
+                return res.status(404).send('Відгуки для цієї категорії не знайдено');
             }
             res.json(results);
             connection.end();
@@ -162,8 +162,8 @@ exports.createCertificateReview = (req, res) => {
 
     connection.connect((err) => {
         if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            res.status(500).send('Database connection error');
+            console.error('Помилка підключення до бази даних: ' + err.stack);
+            res.status(500).send('Помилка підключення до бази даних');
             return;
         }
 
@@ -174,68 +174,10 @@ exports.createCertificateReview = (req, res) => {
 
         connection.query(sqlQuery, [product_id, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en, 'certificate'], (err, results) => {
             if (err) {
-                console.error('Error executing query:', err.message);
-                res.status(500).send('Server error');
+                console.error('Помилка виконання запиту: ' + err.message);
+                res.status(500).send('Помилка сервера');
             } else {
                 res.status(201).send({ id: results.insertId, product_id, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en });
-            }
-            connection.end();
-        });
-    });
-};
-
-exports.updateReview = (req, res) => {
-    const connection = mysql.createConnection(dbConfig);
-    const { id } = req.params;
-    const { stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en } = req.body;
-
-    connection.connect((err) => {
-        if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            res.status(500).send('Database connection error');
-            return;
-        }
-
-        const sqlQuery = `
-            UPDATE reviews 
-            SET stars = ?, name_ua = ?, name_en = ?, description_ua = ?, description_en = ?, pluses_ua = ?, pluses_en = ?, minuses_ua = ?, minuses_en = ?
-            WHERE id = ?
-        `;
-
-        connection.query(sqlQuery, [stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en, id], (err, results) => {
-            if (err) {
-                console.error('Error executing query:', err.message);
-                res.status(500).send('Server error');
-            } else if (results.affectedRows === 0) {
-                res.status(404).send('No entry found with the given ID');
-            } else {
-                res.status(200).send(`Entry with ID ${id} updated successfully`);
-            }
-            connection.end();
-        });
-    });
-};
-
-exports.deleteReview = (req, res) => {
-    const connection = mysql.createConnection(dbConfig);
-    const { id } = req.params;
-
-    connection.connect((err) => {
-        if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            res.status(500).send('Database connection error');
-            return;
-        }
-
-        const sqlQuery = 'DELETE FROM reviews WHERE id = ?';
-        connection.query(sqlQuery, [id], (err, results) => {
-            if (err) {
-                console.error('Error executing query:', err.message);
-                res.status(500).send('Server error');
-            } else if (results.affectedRows === 0) {
-                res.status(404).send('No entry found with the given ID');
-            } else {
-                res.status(200).send(`Entry with ID ${id} deleted successfully`);
             }
             connection.end();
         });
@@ -247,16 +189,16 @@ exports.getIndividualReviews = (req, res) => {
 
     connection.connect((err) => {
         if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            res.status(500).send('Database connection error');
+            console.error('Помилка підключення до бази даних: ' + err.stack);
+            res.status(500).send('Помилка підключення до бази даних');
             return;
         }
 
         const sqlQuery = 'SELECT * FROM reviews WHERE category = ?';
         connection.query(sqlQuery, ['individual'], (err, results) => {
             if (err) {
-                console.error('Error executing query:', err.message);
-                res.status(500).send('Server error');
+                console.error('Помилка виконання запиту: ' + err.message);
+                res.status(500).send('Помилка сервера');
             } else {
                 res.json(results);
             }
@@ -271,8 +213,8 @@ exports.createIndividualReview = (req, res) => {
 
     connection.connect((err) => {
         if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            res.status(500).send('Database connection error');
+            console.error('Помилка підключення до бази даних: ' + err.stack);
+            res.status(500).send('Помилка підключення до бази даних');
             return;
         }
 
@@ -283,10 +225,68 @@ exports.createIndividualReview = (req, res) => {
 
         connection.query(sqlQuery, [stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en, 'individual'], (err, results) => {
             if (err) {
-                console.error('Error executing query:', err.message);
-                res.status(500).send('Server error');
+                console.error('Помилка виконання запиту: ' + err.message);
+                res.status(500).send('Помилка сервера');
             } else {
                 res.status(201).send({ id: results.insertId, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en });
+            }
+            connection.end();
+        });
+    });
+};
+
+exports.updateReview = (req, res) => {
+    const connection = mysql.createConnection(dbConfig);
+    const { id } = req.params;
+    const { stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en } = req.body;
+
+    connection.connect((err) => {
+        if (err) {
+            console.error('Помилка підключення до бази даних: ' + err.stack);
+            res.status(500).send('Помилка підключення до бази даних');
+            return;
+        }
+
+        const sqlQuery = `
+            UPDATE reviews 
+            SET stars = ?, name_ua = ?, name_en = ?, description_ua = ?, description_en = ?, pluses_ua = ?, pluses_en = ?, minuses_ua = ?, minuses_en = ?
+            WHERE id = ?
+        `;
+
+        connection.query(sqlQuery, [stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en, id], (err, results) => {
+            if (err) {
+                console.error('Помилка виконання запиту: ' + err.message);
+                res.status(500).send('Помилка сервера');
+            } else if (results.affectedRows === 0) {
+                res.status(404).send('Запис з вказаним ID не знайдено');
+            } else {
+                res.status(200).send(`Запис з ID ${id} успішно оновлено`);
+            }
+            connection.end();
+        });
+    });
+};
+
+exports.deleteReview = (req, res) => {
+    const connection = mysql.createConnection(dbConfig);
+    const { id } = req.params;
+
+    connection.connect((err) => {
+        if (err) {
+            console.error('Помилка підключення до бази даних: ' + err.stack);
+            res.status(500).send('Помилка підключення до бази даних');
+            return;
+        }
+
+        const sqlQuery = 'DELETE FROM reviews WHERE id = ?';
+        connection.query(sqlQuery, [id], (err, results) => {
+            if (err) {
+                console.error('Помилка виконання запиту: ' + err.message);
+                res.status(500).send('Помилка сервера');
+            } else if (results.affectedRows === 0) {
+                res.status(404).send('Запис з вказаним ID не знайдено');
+            } else {
+                res.status(200).send(`Запис з ID ${id} успішно видалено`);
             }
             connection.end();
         });

@@ -38,8 +38,8 @@ exports.getProducts = (req, res) => {
 
     connection.connect(err => {
         if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            return res.status(500).send('Database connection error');
+            console.error('Помилка підключення до бази даних: ' + err.stack);
+            return res.status(500).send('Помилка підключення до бази даних');
         }
         const sqlQuery = `
             SELECT 
@@ -70,8 +70,8 @@ exports.getProducts = (req, res) => {
 
         connection.query(sqlQuery, (err, results) => {
             if (err) {
-                console.error('Error executing query:', err.message);
-                return res.status(500).send('Server error');
+                console.error('Помилка виконання запиту: ' + err.message);
+                return res.status(500).send('Помилка сервера');
             }
 
             results.forEach(product => {
@@ -94,15 +94,14 @@ exports.getProducts = (req, res) => {
     });
 };
 
-
 exports.getProduct = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { id } = req.params;
 
     connection.connect(err => {
         if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            return res.status(500).send('Database connection error');
+            console.error('Помилка підключення до бази даних: ' + err.stack);
+            return res.status(500).send('Помилка підключення до бази даних');
         }
 
         const sqlQuery = `
@@ -145,11 +144,11 @@ exports.getProduct = (req, res) => {
 
         connection.query(sqlQuery, [id], (err, results) => {
             if (err) {
-                console.error('Error executing query:', err.message);
-                res.status(500).send('Server error');
+                console.error('Помилка виконання запиту: ' + err.message);
+                res.status(500).send('Помилка сервера');
             } else {
                 if (results.length === 0) {
-                    res.status(404).send('Product not found');
+                    res.status(404).send('Продукт не знайдено');
                     connection.end();
                     return;
                 }
@@ -214,15 +213,15 @@ exports.createProduct = async (req, res) => {
         try {
             imageUrls = await uploadImagesToFirebase(req.files);
         } catch (err) {
-            console.error('Error uploading images:', err);
-            return res.status(500).send('Error uploading images');
+            console.error('Помилка завантаження зображень: ' + err);
+            return res.status(500).send('Помилка завантаження зображень');
         }
     }
 
     connection.connect(err => {
         if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            return res.status(500).send('Database connection error');
+            console.error('Помилка підключення до бази даних: ' + err.stack);
+            return res.status(500).send('Помилка підключення до бази даних');
         }
 
         const sqlQuery = `
@@ -240,8 +239,8 @@ exports.createProduct = async (req, res) => {
             base_price, JSON.stringify(imageUrls), article, characteristics
         ], (err, results) => {
             if (err) {
-                console.error('Error executing query:', err.message);
-                return res.status(500).send('Server error');
+                console.error('Помилка виконання запиту: ' + err.message);
+                return res.status(500).send('Помилка сервера');
             }
             res.status(201).json({ message: 'Продукт успішно створено', productId: results.insertId });
             connection.end();
@@ -299,13 +298,12 @@ exports.updateProduct = async (req, res) => {
 
         res.json({ message: 'Продукт успішно оновлено' });
     } catch (err) {
-        console.error('Error updating product:', err);
-        res.status(500).send('Server error');
+        console.error('Помилка оновлення продукту: ' + err);
+        res.status(500).send('Помилка сервера');
     } finally {
         connection.end();
     }
 };
-
 
 exports.deleteProduct = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
@@ -313,16 +311,16 @@ exports.deleteProduct = (req, res) => {
 
     connection.connect(err => {
         if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            return res.status(500).send('Database connection error');
+            console.error('Помилка підключення до бази даних: ' + err.stack);
+            return res.status(500).send('Помилка підключення до бази даних');
         }
 
         const getImageQuery = 'SELECT image_url FROM products WHERE id = ?';
         connection.query(getImageQuery, [id], async (err, results) => {
             if (err) {
-                console.error('Error retrieving current images:', err.message);
+                console.error('Помилка отримання поточних зображень: ' + err.message);
                 connection.end();
-                return res.status(500).send('Server error');
+                return res.status(500).send('Помилка сервера');
             }
 
             let currentImageUrls = [];
@@ -333,22 +331,22 @@ exports.deleteProduct = (req, res) => {
             const deleteReviewsQuery = 'DELETE FROM reviews WHERE product_id = ?';
             connection.query(deleteReviewsQuery, [id], (err, results) => {
                 if (err) {
-                    console.error('Error deleting reviews:', err.message);
-                    return res.status(500).send('Server error');
+                    console.error('Помилка видалення відгуків: ' + err.message);
+                    return res.status(500).send('Помилка сервера');
                 }
 
                 const deleteVariationsQuery = 'DELETE FROM productVariations WHERE product_id = ?';
                 connection.query(deleteVariationsQuery, [id], async (err, results) => {
                     if (err) {
-                        console.error('Error deleting variations:', err.message);
-                        return res.status(500).send('Server error');
+                        console.error('Помилка видалення варіацій: ' + err.message);
+                        return res.status(500).send('Помилка сервера');
                     }
 
                     const deleteProductQuery = 'DELETE FROM products WHERE id = ?';
                     connection.query(deleteProductQuery, [id], async (err, results) => {
                         if (err) {
-                            console.error('Error executing query:', err.message);
-                            return res.status(500).send('Server error');
+                            console.error('Помилка виконання запиту: ' + err.message);
+                            return res.status(500).send('Помилка сервера');
                         }
 
                         try {
@@ -357,8 +355,8 @@ exports.deleteProduct = (req, res) => {
                                 await bucket.file(`products/${fileName}`).delete();
                             }
                         } catch (err) {
-                            console.error('Error deleting images from Firebase:', err);
-                            return res.status(500).send('Error deleting images');
+                            console.error('Помилка видалення зображень з Firebase: ' + err);
+                            return res.status(500).send('Помилка видалення зображень');
                         }
 
                         res.json({ message: 'Продукт успішно видалено' });
@@ -366,75 +364,6 @@ exports.deleteProduct = (req, res) => {
                     });
                 });
             });
-        });
-    });
-};
-
-
-exports.createVariation = (req, res) => {
-    const connection = mysql.createConnection(dbConfig);
-    const { productId } = req.params;
-    const { variation_type, variation_value, additional_price, article, description_en, description_ua } = req.body;
-
-    connection.connect(err => {
-        if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            return res.status(500).send('Database connection error');
-        }
-
-        const sqlQuery = 'INSERT INTO productVariations (product_id, variation_type, variation_value, additional_price, article, description_en, description_ua) VALUES (?, ?, ?, ?, ?, ?, ?)';
-        connection.query(sqlQuery, [productId, variation_type, variation_value, additional_price, article, description_en, description_ua], (err, results) => {
-            if (err) {
-                console.error('Error executing query:', err.message);
-                return res.status(500).send('Server error');
-            }
-            res.status(201).json({ message: 'Варіацію успішно створено', variationId: results.insertId });
-            connection.end();
-        });
-    });
-};
-
-exports.updateVariation = (req, res) => {
-    const connection = mysql.createConnection(dbConfig);
-    const { id } = req.params;
-    const { variation_type, variation_value, additional_price, article, description_en, description_ua } = req.body;
-
-    connection.connect(err => {
-        if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            return res.status(500).send('Database connection error');
-        }
-
-        const sqlQuery = 'UPDATE productVariations SET variation_type = ?, variation_value = ?, additional_price = ?, article = ?, description_en = ?, description_ua = ? WHERE id = ?';
-        connection.query(sqlQuery, [variation_type, variation_value, additional_price, article, description_en, description_ua, id], (err, results) => {
-            if (err) {
-                console.error('Error executing query:', err.message);
-                return res.status(500).send('Server error');
-            }
-            res.json({ message: 'Варіацію успішно оновлено' });
-            connection.end();
-        });
-    });
-};
-
-exports.deleteVariation = (req, res) => {
-    const connection = mysql.createConnection(dbConfig);
-    const { id } = req.params;
-
-    connection.connect(err => {
-        if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            return res.status(500).send('Database connection error');
-        }
-
-        const sqlQuery = 'DELETE FROM productVariations WHERE id = ?';
-        connection.query(sqlQuery, [id], (err, results) => {
-            if (err) {
-                console.error('Error executing query:', err.message);
-                return res.status(500).send('Server error');
-            }
-            res.json({ message: 'Варіацію успішно видалено' });
-            connection.end();
         });
     });
 };

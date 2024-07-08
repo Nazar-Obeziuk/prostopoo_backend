@@ -37,15 +37,15 @@ exports.getVariations = (req, res) => {
 
     connection.connect(err => {
         if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            return res.status(500).send('Database connection error');
+            console.error('Помилка підключення до бази даних: ' + err.stack);
+            return res.status(500).send('Помилка підключення до бази даних');
         }
 
         const sqlQuery = 'SELECT * FROM productVariations WHERE product_id = ?';
         connection.query(sqlQuery, [productId], (err, results) => {
             if (err) {
-                console.error('Error executing query:', err.message);
-                return res.status(500).send('Server error');
+                console.error('Помилка виконання запиту: ' + err.message);
+                return res.status(500).send('Помилка сервера');
             }
 
             results.forEach(product => {
@@ -69,15 +69,15 @@ exports.getVariation = (req, res) => {
 
     connection.connect(err => {
         if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            return res.status(500).send('Database connection error');
+            console.error('Помилка підключення до бази даних: ' + err.stack);
+            return res.status(500).send('Помилка підключення до бази даних');
         }
 
         const sqlQuery = 'SELECT * FROM productVariations WHERE id = ?';
         connection.query(sqlQuery, [id], (err, results) => {
             if (err) {
-                console.error('Error executing query:', err.message);
-                return res.status(500).send('Server error');
+                console.error('Помилка виконання запиту: ' + err.message);
+                return res.status(500).send('Помилка сервера');
             }
 
             if (results.length > 0) {
@@ -89,7 +89,7 @@ exports.getVariation = (req, res) => {
                 }
                 res.json(product);
             } else {
-                res.status(404).send('Variation not found');
+                res.status(404).send('Варіацію не знайдено');
             }
 
             connection.end();
@@ -107,8 +107,8 @@ exports.createVariation = async (req, res) => {
         try {
             imageUrls = await uploadImagesToFirebase(req.files);
         } catch (err) {
-            console.error('Error uploading images:', err);
-            return res.status(500).send('Error uploading images');
+            console.error('Помилка завантаження зображень:', err);
+            return res.status(500).send('Помилка завантаження зображень');
         }
     }
 
@@ -116,15 +116,15 @@ exports.createVariation = async (req, res) => {
 
     connection.connect(err => {
         if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            return res.status(500).send('Database connection error');
+            console.error('Помилка підключення до бази даних: ' + err.stack);
+            return res.status(500).send('Помилка підключення до бази даних');
         }
 
         const sqlQuery = 'INSERT INTO productVariations (product_id, variation_type, variation_value, additional_price, image_url, article, description_en, description_ua) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
         connection.query(sqlQuery, [productId, variation_type, variation_value, additional_price, imageUrlJson, article, description_en, description_ua], (err, results) => {
             if (err) {
-                console.error('Error executing query:', err.message);
-                return res.status(500).send('Server error');
+                console.error('Помилка виконання запиту: ' + err.message);
+                return res.status(500).send('Помилка сервера');
             }
             res.status(201).json({ message: 'Варіацію успішно створено', variationId: results.insertId });
             connection.end();
@@ -142,8 +142,8 @@ exports.updateVariation = async (req, res) => {
         try {
             imageUrls = await uploadImagesToFirebase(req.files);
         } catch (err) {
-            console.error('Error uploading images:', err);
-            return res.status(500).send('Error uploading images');
+            console.error('Помилка завантаження зображень:', err);
+            return res.status(500).send('Помилка завантаження зображень');
         }
     }
 
@@ -151,15 +151,15 @@ exports.updateVariation = async (req, res) => {
 
     connection.connect(err => {
         if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            return res.status(500).send('Database connection error');
+            console.error('Помилка підключення до бази даних: ' + err.stack);
+            return res.status(500).send('Помилка підключення до бази даних');
         }
 
         const sqlQuery = 'UPDATE productVariations SET variation_type = ?, variation_value = ?, additional_price = ?, image_url = IFNULL(?, image_url), article = ?, description_en = ?, description_ua = ? WHERE id = ?';
         connection.query(sqlQuery, [variation_type, variation_value, additional_price, imageUrlJson, article, description_en, description_ua, id], (err, results) => {
             if (err) {
-                console.error('Error executing query:', err.message);
-                return res.status(500).send('Server error');
+                console.error('Помилка виконання запиту: ' + err.message);
+                return res.status(500).send('Помилка сервера');
             }
             res.json({ message: 'Варіацію успішно оновлено' });
             connection.end();
@@ -173,17 +173,17 @@ exports.deleteVariation = (req, res) => {
 
     connection.connect(err => {
         if (err) {
-            console.error('Error connecting to database: ' + err.stack);
-            return res.status(500).send('Database connection error');
+            console.error('Помилка підключення до бази даних: ' + err.stack);
+            return res.status(500).send('Помилка підключення до бази даних');
         }
 
         const sqlQuery = 'DELETE FROM productVariations WHERE id = ?';
         connection.query(sqlQuery, [id], (err, results) => {
             if (err) {
-                console.error('Error executing query:', err.message);
-                return res.status(500).send('Server error');
+                console.error('Помилка виконання запиту: ' + err.message);
+                return res.status(500).send('Помилка сервера');
             }
-            res.json({ message: 'Варіацію успішно створено' });
+            res.json({ message: 'Варіацію успішно видалено' });
             connection.end();
         });
     });
