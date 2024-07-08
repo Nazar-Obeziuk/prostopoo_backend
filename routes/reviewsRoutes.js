@@ -13,6 +13,9 @@ router.post('/product/:product_id', upload.none(), reviewsController.createProdu
 router.get('/certificate/', reviewsController.getCertificateReviews);
 router.post('/certificate/', upload.none(), reviewsController.createCertificateReview);
 
+router.get('/individual', reviewsController.getIndividualReviews);
+router.post('/individual', upload.none(), reviewsController.createIndividualReview);
+
 router.get('/:id', upload.none(), reviewsController.getReview);
 router.put('/:id', upload.none(), reviewsController.updateReview);
 router.delete('/:id', upload.none(), reviewsController.deleteReview);

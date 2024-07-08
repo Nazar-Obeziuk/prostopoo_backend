@@ -241,3 +241,54 @@ exports.deleteReview = (req, res) => {
         });
     });
 };
+
+exports.getIndividualReviews = (req, res) => {
+    const connection = mysql.createConnection(dbConfig);
+
+    connection.connect((err) => {
+        if (err) {
+            console.error('Error connecting to database: ' + err.stack);
+            res.status(500).send('Database connection error');
+            return;
+        }
+
+        const sqlQuery = 'SELECT * FROM reviews WHERE category = ?';
+        connection.query(sqlQuery, ['individual'], (err, results) => {
+            if (err) {
+                console.error('Error executing query:', err.message);
+                res.status(500).send('Server error');
+            } else {
+                res.json(results);
+            }
+            connection.end();
+        });
+    });
+};
+
+exports.createIndividualReview = (req, res) => {
+    const connection = mysql.createConnection(dbConfig);
+    const { stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en } = req.body;
+
+    connection.connect((err) => {
+        if (err) {
+            console.error('Error connecting to database: ' + err.stack);
+            res.status(500).send('Database connection error');
+            return;
+        }
+
+        const sqlQuery = `
+            INSERT INTO reviews (stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en, category) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        connection.query(sqlQuery, [stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en, 'individual'], (err, results) => {
+            if (err) {
+                console.error('Error executing query:', err.message);
+                res.status(500).send('Server error');
+            } else {
+                res.status(201).send({ id: results.insertId, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en });
+            }
+            connection.end();
+        });
+    });
+};

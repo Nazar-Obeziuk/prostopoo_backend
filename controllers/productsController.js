@@ -6,27 +6,31 @@ const os = require('os');
 const fs = require('fs');
 const bucket = require('../config/firebaseConfig');
 
-async function uploadImageToFirebase(file, existingFileName = null) {
-    const tempFilePath = path.join(os.tmpdir(), file.originalname);
-    fs.writeFileSync(tempFilePath, file.buffer);
+async function uploadImagesToFirebase(files) {
+    const urls = [];
+    for (const file of files) {
+        const tempFilePath = path.join(os.tmpdir(), file.originalname);
+        fs.writeFileSync(tempFilePath, file.buffer);
 
-    const uniqueFilename = existingFileName ? existingFileName : `${uuidv4()}-${file.originalname}`;
-    const destinationPath = `products/${uniqueFilename}`;
+        const uniqueFilename = `${uuidv4()}-${file.originalname}`;
+        const destinationPath = `products/${uniqueFilename}`;
 
-    await bucket.upload(tempFilePath, {
-        destination: destinationPath,
-        metadata: {
-            contentType: file.mimetype,
-        },
-    });
+        await bucket.upload(tempFilePath, {
+            destination: destinationPath,
+            metadata: {
+                contentType: file.mimetype,
+            },
+        });
 
-    fs.unlinkSync(tempFilePath);
+        fs.unlinkSync(tempFilePath);
 
-    const fileRef = bucket.file(destinationPath);
-    await fileRef.makePublic();
+        const fileRef = bucket.file(destinationPath);
+        await fileRef.makePublic();
 
-    const url = `https://storage.googleapis.com/${bucket.name}/${destinationPath}`;
-    return url;
+        const url = `https://storage.googleapis.com/${bucket.name}/${destinationPath}`;
+        urls.push(url);
+    }
+    return urls;
 }
 
 exports.getProducts = (req, res) => {
@@ -44,6 +48,10 @@ exports.getProducts = (req, res) => {
                 p.name_ua AS name_ua,
                 p.description_en AS description_en,
                 p.description_ua AS description_ua,
+                p.description_details_en AS description_details_en,
+                p.description_details_ua AS description_details_ua,
+                p.description_characteristics_en AS description_characteristics_en,
+                p.description_characteristics_ua AS description_characteristics_ua,
                 p.base_price AS base_price,
                 p.image_url AS image_url,
                 p.article AS article,
@@ -86,6 +94,7 @@ exports.getProducts = (req, res) => {
     });
 };
 
+
 exports.getProduct = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { id } = req.params;
@@ -103,6 +112,10 @@ exports.getProduct = (req, res) => {
                 p.name_ua AS product_name_ua,
                 p.description_en AS product_description_en,
                 p.description_ua AS product_description_ua,
+                p.description_details_en AS product_description_details_en,
+                p.description_details_ua AS product_description_details_ua,
+                p.description_characteristics_en AS product_description_characteristics_en,
+                p.description_characteristics_ua AS product_description_characteristics_ua,
                 p.base_price AS product_base_price,
                 p.image_url AS product_image_url,
                 p.article AS product_article,
@@ -147,6 +160,10 @@ exports.getProduct = (req, res) => {
                     name_ua: results[0].product_name_ua,
                     description_en: results[0].product_description_en,
                     description_ua: results[0].product_description_ua,
+                    description_details_en: results[0].product_description_details_en,
+                    description_details_ua: results[0].product_description_details_ua,
+                    description_characteristics_en: results[0].product_description_characteristics_en,
+                    description_characteristics_ua: results[0].product_description_characteristics_ua,
                     base_price: results[0].product_base_price,
                     image_url: JSON.parse(results[0].product_image_url || "[]"),
                     average_rating: results[0].product_average_rating,
@@ -185,18 +202,20 @@ exports.getProduct = (req, res) => {
 
 exports.createProduct = async (req, res) => {
     const connection = mysql.createConnection(dbConfig);
-    const { name_ua, name_en, description_ua, description_en, base_price, article, characteristics } = req.body;
+    const {
+        name_ua, name_en, description_ua, description_en,
+        description_details_ua, description_details_en,
+        description_characteristics_ua, description_characteristics_en,
+        base_price, article, characteristics
+    } = req.body;
 
-    console.log(characteristics);
-
-    let imageUrl = null;
-    if (req.file) {
+    let imageUrls = [];
+    if (req.files) {
         try {
-            const uploadedImageUrl = await uploadImageToFirebase(req.file);
-            imageUrl = JSON.stringify([uploadedImageUrl]);
+            imageUrls = await uploadImagesToFirebase(req.files);
         } catch (err) {
-            console.error('Error uploading image:', err);
-            return res.status(500).send('Error uploading image');
+            console.error('Error uploading images:', err);
+            return res.status(500).send('Error uploading images');
         }
     }
 
@@ -206,8 +225,20 @@ exports.createProduct = async (req, res) => {
             return res.status(500).send('Database connection error');
         }
 
-        const sqlQuery = 'INSERT INTO products (name_ua, name_en, description_ua, description_en, base_price, image_url, article, characteristics) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-        connection.query(sqlQuery, [name_ua, name_en, description_ua, description_en, base_price, imageUrl, article, characteristics], (err, results) => {
+        const sqlQuery = `
+            INSERT INTO products (
+                name_ua, name_en, description_ua, description_en, 
+                description_details_ua, description_details_en, 
+                description_characteristics_ua, description_characteristics_en, 
+                base_price, image_url, article, characteristics
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+        connection.query(sqlQuery, [
+            name_ua, name_en, description_ua, description_en,
+            description_details_ua, description_details_en,
+            description_characteristics_ua, description_characteristics_en,
+            base_price, JSON.stringify(imageUrls), article, characteristics
+        ], (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.message);
                 return res.status(500).send('Server error');
@@ -221,7 +252,12 @@ exports.createProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { id } = req.params;
-    const { name_ua, name_en, description_ua, description_en, base_price, article, characteristics } = req.body;
+    const {
+        name_ua, name_en, description_ua, description_en,
+        description_details_ua, description_details_en,
+        description_characteristics_ua, description_characteristics_en,
+        base_price, article, characteristics
+    } = req.body;
 
     try {
         connection.connect();
@@ -235,31 +271,31 @@ exports.updateProduct = async (req, res) => {
         });
 
         let currentImageUrls = results.length > 0 && results[0].image_url ? JSON.parse(results[0].image_url) : [];
-        console.log('Current Image URLs:', currentImageUrls);
 
-        if (req.file) {
-            console.log('New image file provided');
-            const existingFileName = currentImageUrls.length > 0 ? currentImageUrls[0].split('/').pop() : null;
-            const uploadedImageUrl = await uploadImageToFirebase(req.file, existingFileName);
-            const newImageUrl = JSON.stringify([uploadedImageUrl]);
-            console.log('New Image URL:', newImageUrl);
-
-            const sqlQuery = 'UPDATE products SET name_ua = ?, name_en = ?, description_ua = ?, description_en = ?, base_price = ?, image_url = ?, article = ?, characteristics = ? WHERE id = ?';
-            await new Promise((resolve, reject) => {
-                connection.query(sqlQuery, [name_ua, name_en, description_ua, description_en, base_price, newImageUrl, article, characteristics, id], (err, results) => {
-                    if (err) reject(err);
-                    else resolve(results);
-                });
-            });
-        } else {
-            const sqlQuery = 'UPDATE products SET name_ua = ?, name_en = ?, description_ua = ?, description_en = ?, base_price = ?, article = ?, characteristics = ? WHERE id = ?';
-            await new Promise((resolve, reject) => {
-                connection.query(sqlQuery, [name_ua, name_en, description_ua, description_en, base_price, article, characteristics, id], (err, results) => {
-                    if (err) reject(err);
-                    else resolve(results);
-                });
-            });
+        if (req.files) {
+            const uploadedImageUrls = await uploadImagesToFirebase(req.files);
+            currentImageUrls = currentImageUrls.concat(uploadedImageUrls);
         }
+
+        const sqlQuery = `
+            UPDATE products 
+            SET name_ua = ?, name_en = ?, description_ua = ?, description_en = ?, 
+                description_details_ua = ?, description_details_en = ?, 
+                description_characteristics_ua = ?, description_characteristics_en = ?, 
+                base_price = ?, image_url = ?, article = ?, characteristics = ? 
+            WHERE id = ?`;
+
+        await new Promise((resolve, reject) => {
+            connection.query(sqlQuery, [
+                name_ua, name_en, description_ua, description_en,
+                description_details_ua, description_details_en,
+                description_characteristics_ua, description_characteristics_en,
+                base_price, JSON.stringify(currentImageUrls), article, characteristics, id
+            ], (err, results) => {
+                if (err) reject(err);
+                else resolve(results);
+            });
+        });
 
         res.json({ message: 'Продукт успішно оновлено' });
     } catch (err) {
@@ -269,6 +305,8 @@ exports.updateProduct = async (req, res) => {
         connection.end();
     }
 };
+
+
 exports.deleteProduct = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { id } = req.params;
