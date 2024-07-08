@@ -1,9 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-
 const mysql = require('mysql');
 const dbConfig = require('../config/dbConfig');
-
 
 exports.register = async (req, res) => {
     const connection = mysql.createConnection(dbConfig);
@@ -14,14 +12,24 @@ exports.register = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
         const query = 'INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)';
 
-        connection.query(query, [username, email, hashedPassword, userRole], (err, results) => {
+        connection.connect(err => {
             if (err) {
-                return res.status(500).json({ error: err.message });
+                console.error('Помилка підключення до бази даних: ' + err.stack);
+                return res.status(500).json({ error: 'Помилка підключення до бази даних' });
             }
-            res.status(201).json({ message: 'User registered successfully!' });
+
+            connection.query(query, [username, email, hashedPassword, userRole], (err, results) => {
+                if (err) {
+                    console.error('Помилка виконання запиту: ' + err.message);
+                    return res.status(500).json({ error: 'Помилка виконання запиту' });
+                }
+                res.status(201).json({ message: 'Користувача успішно зареєстровано!' });
+                connection.end();
+            });
         });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Помилка хешування паролю: ' + error.message);
+        res.status(500).json({ error: 'Помилка хешування паролю' });
     }
 };
 
@@ -29,27 +37,34 @@ exports.login = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { email, password } = req.body;
 
-    console.log(req);
-
     const query = 'SELECT * FROM users WHERE email = ?';
 
-    connection.query(query, [email], async (err, results) => {
+    connection.connect(err => {
         if (err) {
-            return res.status(500).json({ error: err.message });
+            console.error('Помилка підключення до бази даних: ' + err.stack);
+            return res.status(500).json({ error: 'Помилка підключення до бази даних' });
         }
 
-        if (results.length === 0) {
-            return res.status(401).json({ message: 'Invalid email or password' });
-        }
+        connection.query(query, [email], async (err, results) => {
+            if (err) {
+                console.error('Помилка виконання запиту: ' + err.message);
+                return res.status(500).json({ error: 'Помилка виконання запиту' });
+            }
 
-        const user = results[0];
-        const isMatch = await bcrypt.compare(password, user.password);
+            if (results.length === 0) {
+                return res.status(401).json({ message: 'Невірний email або пароль' });
+            }
 
-        if (!isMatch) {
-            return res.status(401).json({ message: 'Invalid email or password' });
-        }
+            const user = results[0];
+            const isMatch = await bcrypt.compare(password, user.password);
 
-        const token = jwt.sign({ id: user.id, role: user.role }, 'your_jwt_secret', { expiresIn: '30d' });
-        res.json({ message: 'Login successful', token });
+            if (!isMatch) {
+                return res.status(401).json({ message: 'Невірний email або пароль' });
+            }
+
+            const token = jwt.sign({ id: user.id, role: user.role }, 'your_jwt_secret', { expiresIn: '30d' });
+            res.json({ message: 'Вхід успішний', token });
+            connection.end();
+        });
     });
 };
