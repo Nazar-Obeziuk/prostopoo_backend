@@ -11,8 +11,8 @@ exports.getGeneralReviews = (req, res) => {
             return;
         }
 
-        const sqlQuery = 'SELECT * FROM reviews WHERE category IS NULL OR category != ?';
-        connection.query(sqlQuery, ['certificate'], (err, results) => {
+        const sqlQuery = 'SELECT * FROM reviews WHERE category = ?';
+        connection.query(sqlQuery, ['General'], (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.message);
                 res.status(500).send('Server error');
@@ -23,6 +23,7 @@ exports.getGeneralReviews = (req, res) => {
         });
     });
 };
+
 exports.getReviewsByProductId = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { product_id } = req.params;
@@ -34,8 +35,8 @@ exports.getReviewsByProductId = (req, res) => {
             return;
         }
 
-        const sqlQuery = 'SELECT * FROM reviews WHERE product_id = ?';
-        connection.query(sqlQuery, [product_id], (err, results) => {
+        const sqlQuery = 'SELECT * FROM reviews WHERE product_id = ? AND category = ?';
+        connection.query(sqlQuery, [product_id, 'product'], (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.message);
                 res.status(500).send('Server error');
@@ -84,15 +85,12 @@ exports.createGeneralReview = async (req, res) => {
 
         const { stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en } = req.body;
 
-
-        console.log(req.body)
-
         const sqlQuery = `
-            INSERT INTO reviews (stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO reviews (stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en, category) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
-        connection.query(sqlQuery, [stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en], (err, results) => {
+        connection.query(sqlQuery, [stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en, 'General'], (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.message);
                 res.status(500).send('Server error');
@@ -117,11 +115,11 @@ exports.createProductReview = (req, res) => {
         }
 
         const sqlQuery = `
-            INSERT INTO reviews (product_id, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO reviews (product_id, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en, category) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
-        connection.query(sqlQuery, [product_id, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en], (err, results) => {
+        connection.query(sqlQuery, [product_id, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en, 'product'], (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.message);
                 res.status(500).send('Server error');
@@ -132,7 +130,6 @@ exports.createProductReview = (req, res) => {
         });
     });
 };
-
 
 exports.getCertificateReviews = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
@@ -158,7 +155,6 @@ exports.getCertificateReviews = (req, res) => {
     });
 };
 
-
 exports.createCertificateReview = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { product_id } = req.params;
@@ -172,11 +168,11 @@ exports.createCertificateReview = (req, res) => {
         }
 
         const sqlQuery = `
-            INSERT INTO reviews (product_id, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en, category)
+            INSERT INTO reviews (product_id, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en, category) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
-        connection.query(sqlQuery, [product_id, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en, "certificate"], (err, results) => {
+        connection.query(sqlQuery, [product_id, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en, 'certificate'], (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.message);
                 res.status(500).send('Server error');
@@ -187,8 +183,6 @@ exports.createCertificateReview = (req, res) => {
         });
     });
 };
-
-
 
 exports.updateReview = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
@@ -204,7 +198,7 @@ exports.updateReview = (req, res) => {
 
         const sqlQuery = `
             UPDATE reviews 
-            SET  stars = ?, name_ua = ?, name_en = ?, description_ua = ?, description_en = ?, pluses_ua = ?, pluses_en = ?, minuses_ua = ?, minuses_en = ?
+            SET stars = ?, name_ua = ?, name_en = ?, description_ua = ?, description_en = ?, pluses_ua = ?, pluses_en = ?, minuses_ua = ?, minuses_en = ?
             WHERE id = ?
         `;
 
