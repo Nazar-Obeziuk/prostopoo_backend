@@ -135,6 +135,63 @@ exports.createProductReview = (req, res) => {
     });
 };
 
+
+exports.getCertificateReviews = (req, res) => {
+    const connection = mysql.createConnection(dbConfig);
+
+    connection.connect((err) => {
+        if (err) {
+            console.error('Error connecting to database: ' + err.stack);
+            return res.status(500).send('Database connection error');
+        }
+
+        const sqlQuery = 'SELECT * FROM reviews WHERE category = ?';
+        connection.query(sqlQuery, ['certificate'], (err, results) => {
+            if (err) {
+                console.error('Error executing query:', err.message);
+                return res.status(500).send('Server error');
+            }
+            if (results.length === 0) {
+                return res.status(404).send('No reviews found for the given category');
+            }
+            res.json(results);
+            connection.end();
+        });
+    });
+};
+
+
+exports.createCertificateReview = (req, res) => {
+    const connection = mysql.createConnection(dbConfig);
+    const { product_id } = req.params;
+    const { stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en } = req.body;
+
+    connection.connect((err) => {
+        if (err) {
+            console.error('Error connecting to database: ' + err.stack);
+            res.status(500).send('Database connection error');
+            return;
+        }
+
+        const sqlQuery = `
+            INSERT INTO reviews (product_id, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en, category)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        connection.query(sqlQuery, [product_id, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en, "certificate"], (err, results) => {
+            if (err) {
+                console.error('Error executing query:', err.message);
+                res.status(500).send('Server error');
+            } else {
+                res.status(201).send({ id: results.insertId, product_id, stars, name_ua, name_en, description_ua, description_en, pluses_ua, pluses_en, minuses_ua, minuses_en });
+            }
+            connection.end();
+        });
+    });
+};
+
+
+
 exports.updateReview = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { id } = req.params;

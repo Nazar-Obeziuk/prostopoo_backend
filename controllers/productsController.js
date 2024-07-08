@@ -269,7 +269,6 @@ exports.updateProduct = async (req, res) => {
         connection.end();
     }
 };
-
 exports.deleteProduct = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { id } = req.params;
@@ -293,7 +292,7 @@ exports.deleteProduct = (req, res) => {
                 currentImageUrls = JSON.parse(results[0].image_url);
             }
 
-            const deleteReviewsQuery = 'DELETE FROM product_reviews WHERE product_id = ?';
+            const deleteReviewsQuery = 'DELETE FROM reviews WHERE product_id = ?';
             connection.query(deleteReviewsQuery, [id], (err, results) => {
                 if (err) {
                     console.error('Error deleting reviews:', err.message);
@@ -332,6 +331,7 @@ exports.deleteProduct = (req, res) => {
         });
     });
 };
+
 
 exports.createVariation = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
