@@ -1,7 +1,6 @@
 const mysql = require('mysql');
 const dbConfig = require('../config/dbConfig');
 
-// Get all general reviews (those without a product_id)
 exports.getGeneralReviews = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
 
@@ -12,8 +11,8 @@ exports.getGeneralReviews = (req, res) => {
             return;
         }
 
-        const sqlQuery = 'SELECT * FROM reviews WHERE product_id IS NULL';
-        connection.query(sqlQuery, (err, results) => {
+        const sqlQuery = 'SELECT * FROM reviews WHERE category IS NULL OR category != ?';
+        connection.query(sqlQuery, ['certificate'], (err, results) => {
             if (err) {
                 console.error('Error executing query:', err.message);
                 res.status(500).send('Server error');
@@ -24,7 +23,6 @@ exports.getGeneralReviews = (req, res) => {
         });
     });
 };
-
 exports.getReviewsByProductId = (req, res) => {
     const connection = mysql.createConnection(dbConfig);
     const { product_id } = req.params;
