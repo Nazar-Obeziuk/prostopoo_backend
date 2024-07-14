@@ -25,17 +25,21 @@ app.use("/images", express.static(path.join(__dirname, "images")));
 
 // Routes
 const productsRoutes = require("./routes/productsRoutes");
+const individualRoutes = require("./routes/individualRoutes");
 const authRoutes = require("./routes/authRoutes");
 const workersRoutes = require("./routes/workersRoutes");
 const reviewsRoutes = require("./routes/reviewsRoutes");
 const storageRoutes = require("./routes/storageRoutes");
 const variationRoutes = require("./routes/variationsRoutes");
+const individualVariationRoutes = require("./routes/individualVariationRoutes");
 
 app.use("/products", productsRoutes);
+app.use("/individual-insoles", individualRoutes);
 app.use("/auth", authRoutes);
 app.use("/workers", workersRoutes);
 app.use("/reviews", reviewsRoutes);
 app.use("/variations", variationRoutes);
+app.use("/individual-insoles-variations", individualVariationRoutes);
 
 app.use("/storage", storageRoutes);
 

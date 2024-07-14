@@ -1,33 +1,33 @@
 const express = require("express");
 const router = express.Router();
-const productsController = require("../controllers/productsController");
+const individualController = require("../controllers/individualController");
 const {
   authenticateToken,
   authorizeAdmin,
 } = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadMiddleware");
 
-router.get("/", productsController.getProducts);
-router.get("/:id", productsController.getProduct);
+router.get("/", individualController.getAllIndividualInsoles);
+router.get("/:id", individualController.getIndividualInsole);
 router.post(
   "/",
   authenticateToken,
   authorizeAdmin,
-  upload.array("images", 5),
-  productsController.createProduct
+  upload.array("image_url"),
+  individualController.createIndividualInsole
 );
 router.put(
   "/:id",
   authenticateToken,
   authorizeAdmin,
-  upload.array("images", 5),
-  productsController.updateProduct
+  upload.array("image_url"),
+  individualController.updateIndividualInsole
 );
 router.delete(
   "/:id",
   authenticateToken,
   authorizeAdmin,
-  productsController.deleteProduct
+  individualController.deleteIndividualInsole
 );
 
 module.exports = router;

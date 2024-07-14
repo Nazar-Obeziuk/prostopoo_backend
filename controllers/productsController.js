@@ -264,12 +264,10 @@ exports.createProduct = async (req, res) => {
           console.error("Помилка виконання запиту: " + err.message);
           return res.status(500).send("Помилка сервера");
         }
-        res
-          .status(201)
-          .json({
-            message: "Продукт успішно створено",
-            productId: results.insertId,
-          });
+        res.status(201).json({
+          message: "Продукт успішно створено",
+          productId: results.insertId,
+        });
         connection.end();
       }
     );
@@ -456,12 +454,10 @@ exports.createVariation = (req, res) => {
           console.error("Error executing query:", err.message);
           return res.status(500).send("Server error");
         }
-        res
-          .status(201)
-          .json({
-            message: "Варіацію успішно створено",
-            variationId: results.insertId,
-          });
+        res.status(201).json({
+          message: "Варіацію успішно створено",
+          variationId: results.insertId,
+        });
         connection.end();
       }
     );
